@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CR 管理系统</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #e0e6ed;
+    }
+    
+    h1 {
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #2980b9;
+    }
+    
+    .btn-success {
+      background-color: #2ecc71;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background-color: #27ae60;
+    }
+    
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background-color: #c0392b;
+    }
+    
+    .btn:disabled {
+      background-color: #bdc3c7;
+      cursor: not-allowed;
+    }
+    
+    .cr-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .cr-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      padding: 20px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+    
+    .cr-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cr-card.selected {
+      border: 2px solid #3498db;
+    }
+    
+    .checkbox {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 18px;
+      height: 18px;
+    }
+    
+    .cr-id {
+      font-weight: 600;
+      color: #3498db;
+      margin-bottom: 5px;
+    }
+    
+    .cr-title {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    
+    .cr-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .status-pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    
+    .status-approved {
+      background-color: #d1ecf1;
+      color: #0c5460;
+    }
+    
+    .status-rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .modal {
+      background: white;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid #e0e6ed;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #7f8c8d;
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .detail-row {
+      margin-bottom: 15px;
+    }
+    
+    .detail-label {
+      font-weight: 500;
+      color: #7f8c8d;
+      margin-bottom: 5px;
+    }
+    
+    .detail-value {
+      color: #2c3e50;
+    }
+    
+    .modal-footer {
+      padding: 15px 20px;
+      border-top: 1px solid #e0e6ed;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #7f8c8d;
+    }
+    
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      color: #bdc3c7;
+    }
+    
+    .batch-info {
+      margin-bottom: 20px;
+      padding: 12px 15px;
+      background-color: #e8f4fd;
+      border-radius: 6px;
+      color: #2c3e50;
+    }
+    
+    @media (max-width: 768px) {
+      .cr-list {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="container">
+      <header>
+        <h1>变更请求管理</h1>
+        <div class="actions">
+          <button class="btn btn-primary" @click="selectAll" v-if="!allSelected">
+            <i class="fas fa-check-square"></i> 全选
+          </button>
+          <button class="btn btn-primary" @click="deselectAll" v-else>
+            <i class="fas fa-square"></i> 取消全选
+          </button>
+          <button class="btn btn-success" @click="batchApprove" :disabled="selectedCrIds.length === 0">
+            <i class="fas fa-check"></i> 批量批准 ({{ selectedCrIds.length }})
+          </button>
+          <button class="btn btn-danger" @click="batchReject" :disabled="selectedCrIds.length === 0">
+            <i class="fas fa-times"></i> 批量拒绝 ({{ selectedCrIds.length }})
+          </button>
+        </div>
+      </header>
+
+      <div class="batch-info" v-if="selectedCrIds.length > 0">
+        已选择 {{ selectedCrIds.length }} 个变更请求
+      </div>
+
+      <div class="cr-list">
+        <div v-for="cr in crList" :key="cr.id" 
+             class="cr-card" 
+             :class="{ selected: selectedCrIds.includes(cr.id) }"
+             @click="toggleSelect(cr.id)">
+          <input type="checkbox" class="checkbox" 
+                 :checked="selectedCrIds.includes(cr.id)"
+                 @click.stop="toggleSelect(cr.id)">
+          <div class="cr-id">CR-{{ cr.id }}</div>
+          <div class="cr-title">{{ cr.title }}</div>
+          <div class="cr-description">{{ cr.description }}</div>
+          <div class="cr-meta">
+            <div>
+              <i class="fas fa-user"></i> {{ cr.requester }}
+            </div>
+            <div>
+              <i class="fas fa-calendar"></i> {{ formatDate(cr.createdAt) }}
+            </div>
+          </div>
+          <div class="cr-meta">
+            <div>
+              <span class="status" :class="`status-${cr.status}`">
+                {{ getStatusText(cr.status) }}
+              </span>
+            </div>
+            <div @click.stop="showDetails(cr)">
+              <i class="fas fa-eye"></i> 查看详情
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" v-if="crList.length === 0">
+        <i class="fas fa-folder-open"></i>
+        <h3>暂无变更请求</h3>
+        <p>当前没有待处理的变更请求</p>
+      </div>
+
+      <!-- 详情弹窗 -->
+      <div class="modal-overlay" v-if="showModal" @click.self="closeModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title">变更请求详情</h2>
+            <button class="close-btn" @click="closeModal">&times;</button>
+          </div>
+          <div class="modal-body" v-if="selectedCr">
+            <div class="detail-row">
+              <div class="detail-label">ID</div>
+              <div class="detail-value">CR-{{ selectedCr.id }}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">标题</div>
+              <div class="detail-value">{{ selectedCr.title }}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">描述</div>
+              <div class="detail-value">{{ selectedCr.description }}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">请求者</div>
+              <div class="detail-value">{{ selectedCr.requester }}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">创建时间</div>
+              <div class="detail-value">{{ formatDate(selectedCr.createdAt) }}</div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">状态</div>
+              <div class="detail-value">
+                <span class="status" :class="`status-${selectedCr.status}`">
+                  {{ getStatusText(selectedCr.status) }}
+                </span>
+              </div>
+            </div>
+            <div class="detail-row">
+              <div class="detail-label">详细内容</div>
+              <div class="detail-value">{{ selectedCr.details }}</div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-success" @click="approveCr(selectedCr.id)" v-if="selectedCr && selectedCr.status === 'pending'">
+              <i class="fas fa-check"></i> 批准
+            </button>
+            <button class="btn btn-danger" @click="rejectCr(selectedCr.id)" v-if="selectedCr && selectedCr.status === 'pending'">
+              <i class="fas fa-times"></i> 拒绝
+            </button>
+            <button class="btn btn-primary" @click="closeModal">
+              关闭
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, computed } = Vue;
+    
+    createApp({
+      setup() {
+        // 模拟CR数据
+        const crList = ref([
+          {
+            id: 1001,
+            title: '用户登录功能优化',
+            description: '改进用户登录流程，提升用户体验',
+            details: '详细描述：当前用户登录流程存在多个步骤，优化后可以减少到两步，同时增加记住登录状态功能。',
+            requester: '张明',
+            createdAt: new Date(2023, 5, 15),
+            status: 'pending'
+          },
+          {
+            id: 1002,
+            title: '数据库索引优化',
+            description: '优化用户查询相关的数据库索引',
+            details: '详细描述：用户表查询性能较差，建议增加复合索引，预计可提升查询性能30%以上。',
+            requester: '李华',
+            createdAt: new Date(2023, 5, 18),
+            status: 'approved'
+          },
+          {
+            id: 1003,
+            title: '支付接口升级',
+            description: '将支付接口从V1升级到V2版本',
+            details: '详细描述：当前使用的支付接口V1版本将于下月停止维护，需要升级到V2版本，新版本支持更多支付方式。',
+            requester: '王芳',
+            createdAt: new Date(2023, 5, 20),
+            status: 'pending'
+          },
+          {
+            id: 1004,
+            title: '前端框架迁移',
+            description: '将前端框架从Vue2迁移到Vue3',
+            details: '详细描述：Vue2将于年底停止维护，建议迁移到Vue3以获得更好的性能和开发体验。',
+            requester: '赵强',
+            createdAt: new Date(2023, 5, 22),
+            status: 'rejected'
+          },
+          {
+            id: 1005,
+            title: '增加数据导出功能',
+            description: '为用户增加数据导出为Excel功能',
+            details: '详细描述：用户反馈需要将数据导出为Excel格式，建议开发此功能以提升用户体验。',
+            requester: '刘伟',
+            createdAt: new Date(2023, 5, 25),
+            status: 'pending'
+          }
+        ]);
+        
+        const selectedCrIds = ref([]);
+        const showModal = ref(false);
+        const selectedCr = ref(null);
+        
+        const allSelected = computed(() => {
+          return selectedCrIds.value.length === crList.value.length;
+        });
+        
+        const toggleSelect = (id) => {
+          const index = selectedCrIds.value.indexOf(id);
+          if (index > -1) {
+            selectedCrIds.value.splice(index, 1);
+          } else {
+            selectedCrIds.value.push(id);
+          }
+        };
+        
+        const selectAll = () => {
+          selectedCrIds.value = crList.value.map(cr => cr.id);
+        };
+        
+        const deselectAll = () => {
+          selectedCrIds.value = [];
+        };
+        
+        const batchApprove = () => {
+          crList.value.forEach(cr => {
+            if (selectedCrIds.value.includes(cr.id)) {
+              cr.status = 'approved';
+            }
+          });
+          selectedCrIds.value = [];
+        };
+        
+        const batchReject = () => {
+          crList.value.forEach(cr => {
+            if (selectedCrIds.value.includes(cr.id)) {
+              cr.status = 'rejected';
+            }
+          });
+          selectedCrIds.value = [];
+        };
+        
+        const showDetails = (cr) => {
+          selectedCr.value = cr;
+          showModal.value = true;
+        };
+        
+        const closeModal = () => {
+          showModal.value = false;
+          selectedCr.value = null;
+        };
+        
+        const approveCr = (id) => {
+          const cr = crList.value.find(cr => cr.id === id);
+          if (cr) {
+            cr.status = 'approved';
+          }
+          closeModal();
+        };
+        
+        const rejectCr = (id) => {
+          const cr = crList.value.find(cr => cr.id === id);
+          if (cr) {
+            cr.status = 'rejected';
+          }
+          closeModal();
+        };
+        
+        const formatDate = (date) => {
+          return new Date(date).toLocaleDateString('zh-CN');
+        };
+        
+        const getStatusText = (status) => {
+          const statusMap = {
+            'pending': '待处理',
+            'approved': '已批准',
+            'rejected': '已拒绝'
+          };
+          return statusMap[status] || status;
+        };
+        
+        return {
+          crList,
+          selectedCrIds,
+          showModal,
+          selectedCr,
+          allSelected,
+          toggleSelect,
+          selectAll,
+          deselectAll,
+          batchApprove,
+          batchReject,
+          showDetails,
+          closeModal,
+          approveCr,
+          rejectCr,
+          formatDate,
+          getStatusText
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
