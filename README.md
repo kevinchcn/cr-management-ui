@@ -21,9 +21,10 @@ PowerShell example:
 ```powershell
 # Start a simple static server using Python (requires Python in PATH)
 python -m http.server 8000
-# Or using Node.js
-npx serve .
 # Then open http://localhost:8000/index.html in your browser
+
+# Using Node.js
+npx serve .
 # Or using Docker
 docker build -t cr-management-ui .
 docker run -d -p 3000:3000 --name cr-management-app cr-management-ui
