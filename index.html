@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CR 管理系统</title>
+  <title>CR Management System</title>
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
@@ -38,6 +38,41 @@
     h1 {
       color: #2c3e50;
       font-weight: 600;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #3498db;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    .role-badge {
+      background-color: #e74c3c;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+    
+    .role-badge.approver {
+      background-color: #2ecc71;
+    }
+    
+    .role-badge.requester {
+      background-color: #3498db;
     }
     
     .actions {
@@ -257,46 +292,191 @@
       color: #2c3e50;
     }
     
+    /* 登录页面样式 */
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .login-form {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .login-title {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #2c3e50;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+    
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .login-btn:hover {
+      background-color: #2980b9;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #7f8c8d;
+    }
+    
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 12px 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    
+    .user-permission-note {
+      background-color: #fff3cd;
+      color: #856404;
+      padding: 12px 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
     @media (max-width: 768px) {
       .cr-list {
         grid-template-columns: 1fr;
+      }
+      
+      .actions {
+        flex-wrap: wrap;
       }
     }
   </style>
 </head>
 <body>
   <div id="app">
-    <div class="container">
+    <!-- 登录页面 -->
+    <div class="login-container" v-if="!isLoggedIn">
+      <div class="login-form">
+        <h2 class="login-title">Login to CR Management System</h2>
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" v-model="loginForm.username" placeholder="Enter username">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" v-model="loginForm.password" placeholder="Enter password">
+        </div>
+        <button class="login-btn" @click="handleLogin">Login</button>
+        
+        <!-- 测试账户信息 -->
+        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; font-size: 12px;">
+          <strong>Test Accounts (Password: admin):</strong><br>
+          • admin (Administrator)<br>
+          • kevin (CR Requester)<br>
+          • boss (Approver)
+        </div>
+      </div>
+    </div>
+
+    <!-- 主应用页面 -->
+    <div class="container" v-else>
       <header>
-        <h1>变更请求管理</h1>
-        <div class="actions">
-          <button class="btn btn-primary" @click="selectAll" v-if="!allSelected">
-            <i class="fas fa-check-square"></i> 全选
-          </button>
-          <button class="btn btn-primary" @click="deselectAll" v-else>
-            <i class="fas fa-square"></i> 取消全选
-          </button>
-          <button class="btn btn-success" @click="batchApprove" :disabled="selectedCrIds.length === 0">
-            <i class="fas fa-check"></i> 批量批准 ({{ selectedCrIds.length }})
-          </button>
-          <button class="btn btn-danger" @click="batchReject" :disabled="selectedCrIds.length === 0">
-            <i class="fas fa-times"></i> 批量拒绝 ({{ selectedCrIds.length }})
+        <h1>Change Request Management</h1>
+        <div class="user-info">
+          <div class="user-avatar">{{ currentUser.name.charAt(0) }}</div>
+          <div>
+            <div>{{ currentUser.name }} <span class="role-badge" :class="currentUser.role">{{ currentUser.role }}</span></div>
+            <div style="font-size: 12px; color: #7f8c8d;">{{ currentUser.email }}</div>
+          </div>
+          <button class="btn btn-primary" @click="handleLogout" style="margin-left: 15px;">
+            <i class="fas fa-sign-out-alt"></i> Logout
           </button>
         </div>
       </header>
 
-      <div class="batch-info" v-if="selectedCrIds.length > 0">
-        已选择 {{ selectedCrIds.length }} 个变更请求
+      <!-- 权限提示 -->
+      <div class="user-permission-note" v-if="currentUser.role === 'requester'">
+        <i class="fas fa-info-circle"></i> You have requester permissions. You can view your CR status but cannot approve or reject requests.
+      </div>
+
+      <div class="actions" v-if="currentUser.role !== 'requester'">
+        <button class="btn btn-primary" @click="selectAll" v-if="!allSelected">
+          <i class="fas fa-check-square"></i> Select All
+        </button>
+        <button class="btn btn-primary" @click="deselectAll" v-else>
+          <i class="fas fa-square"></i> Deselect All
+        </button>
+        <button class="btn btn-success" @click="batchApprove" :disabled="selectedCrIds.length === 0">
+          <i class="fas fa-check"></i> Batch Approve ({{ selectedCrIds.length }})
+        </button>
+        <button class="btn btn-danger" @click="batchReject" :disabled="selectedCrIds.length === 0">
+          <i class="fas fa-times"></i> Batch Reject ({{ selectedCrIds.length }})
+        </button>
+      </div>
+
+      <!-- 加载状态 -->
+      <div class="loading" v-if="isLoading">
+        <i class="fas fa-spinner fa-spin"></i> Loading...
+      </div>
+
+      <!-- 错误信息 -->
+      <div class="error" v-if="error">
+        {{ error }}
+        <button @click="loadCRs" style="margin-left: 10px;">Retry</button>
+      </div>
+
+      <div class="batch-info" v-if="selectedCrIds.length > 0 && currentUser.role !== 'requester'">
+        {{ selectedCrIds.length }} change requests selected
       </div>
 
       <div class="cr-list">
-        <div v-for="cr in crList" :key="cr.id" 
+        <div v-for="cr in filteredCrList" :key="cr.id" 
              class="cr-card" 
              :class="{ selected: selectedCrIds.includes(cr.id) }"
              @click="toggleSelect(cr.id)">
           <input type="checkbox" class="checkbox" 
                  :checked="selectedCrIds.includes(cr.id)"
-                 @click.stop="toggleSelect(cr.id)">
+                 @click.stop="toggleSelect(cr.id)"
+                 v-if="currentUser.role !== 'requester'">
           <div class="cr-id">CR-{{ cr.id }}</div>
           <div class="cr-title">{{ cr.title }}</div>
           <div class="cr-description">{{ cr.description }}</div>
@@ -314,139 +494,369 @@
                 {{ getStatusText(cr.status) }}
               </span>
             </div>
-            <div @click.stop="showDetails(cr)">
-              <i class="fas fa-eye"></i> 查看详情
-            </div>
+            <!-- 移除查看详情按钮 -->
           </div>
         </div>
       </div>
 
-      <div class="empty-state" v-if="crList.length === 0">
+      <div class="empty-state" v-if="filteredCrList.length === 0 && !isLoading">
         <i class="fas fa-folder-open"></i>
-        <h3>暂无变更请求</h3>
-        <p>当前没有待处理的变更请求</p>
+        <h3>No Change Requests</h3>
+        <p>There are no change requests to display</p>
       </div>
 
-      <!-- 详情弹窗 -->
-      <div class="modal-overlay" v-if="showModal" @click.self="closeModal">
-        <div class="modal">
-          <div class="modal-header">
-            <h2 class="modal-title">变更请求详情</h2>
-            <button class="close-btn" @click="closeModal">&times;</button>
-          </div>
-          <div class="modal-body" v-if="selectedCr">
-            <div class="detail-row">
-              <div class="detail-label">ID</div>
-              <div class="detail-value">CR-{{ selectedCr.id }}</div>
-            </div>
-            <div class="detail-row">
-              <div class="detail-label">标题</div>
-              <div class="detail-value">{{ selectedCr.title }}</div>
-            </div>
-            <div class="detail-row">
-              <div class="detail-label">描述</div>
-              <div class="detail-value">{{ selectedCr.description }}</div>
-            </div>
-            <div class="detail-row">
-              <div class="detail-label">请求者</div>
-              <div class="detail-value">{{ selectedCr.requester }}</div>
-            </div>
-            <div class="detail-row">
-              <div class="detail-label">创建时间</div>
-              <div class="detail-value">{{ formatDate(selectedCr.createdAt) }}</div>
-            </div>
-            <div class="detail-row">
-              <div class="detail-label">状态</div>
-              <div class="detail-value">
-                <span class="status" :class="`status-${selectedCr.status}`">
-                  {{ getStatusText(selectedCr.status) }}
-                </span>
-              </div>
-            </div>
-            <div class="detail-row">
-              <div class="detail-label">详细内容</div>
-              <div class="detail-value">{{ selectedCr.details }}</div>
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button class="btn btn-success" @click="approveCr(selectedCr.id)" v-if="selectedCr && selectedCr.status === 'pending'">
-              <i class="fas fa-check"></i> 批准
-            </button>
-            <button class="btn btn-danger" @click="rejectCr(selectedCr.id)" v-if="selectedCr && selectedCr.status === 'pending'">
-              <i class="fas fa-times"></i> 拒绝
-            </button>
-            <button class="btn btn-primary" @click="closeModal">
-              关闭
-            </button>
-          </div>
-        </div>
-      </div>
+      <!-- 详情弹窗已移除 -->
     </div>
   </div>
 
   <script>
-    const { createApp, ref, computed } = Vue;
+    const { createApp, ref, computed, onMounted } = Vue;
     
     createApp({
       setup() {
+        // 用户认证状态
+        const isLoggedIn = ref(false);
+        const currentUser = ref({});
+        const loginForm = ref({
+          username: '',
+          password: ''
+        });
+
         // 模拟CR数据
-        const crList = ref([
-          {
-            id: 1001,
-            title: '用户登录功能优化',
-            description: '改进用户登录流程，提升用户体验',
-            details: '详细描述：当前用户登录流程存在多个步骤，优化后可以减少到两步，同时增加记住登录状态功能。',
-            requester: '张明',
-            createdAt: new Date(2023, 5, 15),
-            status: 'pending'
-          },
-          {
-            id: 1002,
-            title: '数据库索引优化',
-            description: '优化用户查询相关的数据库索引',
-            details: '详细描述：用户表查询性能较差，建议增加复合索引，预计可提升查询性能30%以上。',
-            requester: '李华',
-            createdAt: new Date(2023, 5, 18),
-            status: 'approved'
-          },
-          {
-            id: 1003,
-            title: '支付接口升级',
-            description: '将支付接口从V1升级到V2版本',
-            details: '详细描述：当前使用的支付接口V1版本将于下月停止维护，需要升级到V2版本，新版本支持更多支付方式。',
-            requester: '王芳',
-            createdAt: new Date(2023, 5, 20),
-            status: 'pending'
-          },
-          {
-            id: 1004,
-            title: '前端框架迁移',
-            description: '将前端框架从Vue2迁移到Vue3',
-            details: '详细描述：Vue2将于年底停止维护，建议迁移到Vue3以获得更好的性能和开发体验。',
-            requester: '赵强',
-            createdAt: new Date(2023, 5, 22),
-            status: 'rejected'
-          },
-          {
-            id: 1005,
-            title: '增加数据导出功能',
-            description: '为用户增加数据导出为Excel功能',
-            details: '详细描述：用户反馈需要将数据导出为Excel格式，建议开发此功能以提升用户体验。',
-            requester: '刘伟',
-            createdAt: new Date(2023, 5, 25),
-            status: 'pending'
-          }
-        ]);
-        
+        const crList = ref([]);
         const selectedCrIds = ref([]);
-        const showModal = ref(false);
-        const selectedCr = ref(null);
         
+        // API 集成相关状态
+        const isLoading = ref(false);
+        const error = ref(null);
+
+        /*
+        // LDAP 认证服务 - 取消注释并配置您的LDAP服务器
+        const ldapService = {
+          async authenticate(credentials) {
+            // LDAP 认证实现示例
+            const response = await fetch('/api/ldap/auth', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                username: credentials.username,
+                password: credentials.password,
+                server: 'ldap://your-ldap-server.com',
+                baseDN: 'ou=users,dc=company,dc=com'
+              })
+            });
+            
+            if (!response.ok) throw new Error('LDAP authentication failed');
+            const result = await response.json();
+            
+            if (result.authenticated) {
+              return {
+                token: result.token,
+                user: {
+                  name: result.user.displayName,
+                  email: result.user.mail,
+                  role: this.mapLdapGroupToRole(result.user.memberOf)
+                }
+              };
+            } else {
+              throw new Error('Invalid LDAP credentials');
+            }
+          },
+          
+          mapLdapGroupToRole(memberOf) {
+            // 根据LDAP组映射到系统角色
+            if (memberOf.includes('CN=Approvers,')) return 'approver';
+            if (memberOf.includes('CN=Requesters,')) return 'requester';
+            if (memberOf.includes('CN=Admins,')) return 'admin';
+            return 'requester'; // 默认角色
+          }
+        };
+        */
+
+        /*
+        // API 服务函数 - 取消注释并配置您的API端点
+        const apiService = {
+          async login(credentials) {
+            const response = await fetch('/api/auth/login', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(credentials)
+            });
+            if (!response.ok) throw new Error('Login failed');
+            return response.json();
+          },
+
+          async fetchCRs(token) {
+            const response = await fetch('/api/change-requests', {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch data');
+            return response.json();
+          },
+
+          /*
+          // CR详情通过API获取 - 取消注释以启用
+          async fetchCRDetails(id, token) {
+            const response = await fetch(`/api/change-requests/${id}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Failed to fetch CR details');
+            return response.json();
+          },
+          */
+          
+          /*
+          // 审批结果通过API发送 - 取消注释以启用
+          async approveCR(id, token) {
+            const response = await fetch(`/api/change-requests/${id}/approve`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Approval failed');
+            return response.json();
+          },
+          
+          async rejectCR(id, token) {
+            const response = await fetch(`/api/change-requests/${id}/reject`, {
+              method: 'POST',
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!response.ok) throw new Error('Rejection failed');
+            return response.json();
+          },
+          
+          async batchApprove(ids, token) {
+            const response = await fetch('/api/change-requests/batch-approve', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ ids })
+            });
+            if (!response.ok) throw new Error('Batch approval failed');
+            return response.json();
+          },
+          
+          async batchReject(ids, token) {
+            const response = await fetch('/api/change-requests/batch-reject', {
+              method: 'POST', 
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ ids })
+            });
+            if (!response.ok) throw new Error('Batch rejection failed');
+            return response.json();
+          }
+        };
+        */
+
+        // 用户数据库（模拟LDAP用户）
+        const userDatabase = {
+          'admin': {
+            name: 'System Administrator',
+            email: 'admin@company.com',
+            role: 'admin',
+            password: 'admin'
+          },
+          'kevin': {
+            name: 'Kevin',
+            email: 'kevin@company.com',
+            role: 'requester',
+            password: 'admin'
+          },
+          'boss': {
+            name: 'Boss',
+            email: 'boss@company.com',
+            role: 'approver',
+            password: 'admin'
+          }
+        };
+
+        // 登录处理
+        const handleLogin = async () => {
+          // 简单的前端验证
+          if (!loginForm.value.username || !loginForm.value.password) {
+            error.value = 'Please enter username and password';
+            return;
+          }
+
+          /*
+          // 使用LDAP登录 - 取消注释以启用LDAP认证
+          try {
+            isLoading.value = true;
+            error.value = null;
+            const result = await ldapService.authenticate(loginForm.value);
+            
+            // 保存token和用户信息
+            localStorage.setItem('authToken', result.token);
+            localStorage.setItem('userInfo', JSON.stringify(result.user));
+            
+            currentUser.value = result.user;
+            isLoggedIn.value = true;
+            
+            // 加载CR数据
+            await loadCRs();
+          } catch (err) {
+            error.value = err.message;
+          } finally {
+            isLoading.value = false;
+          }
+          */
+
+          /*
+          // 使用API登录 - 取消注释以启用真实API调用
+          try {
+            isLoading.value = true;
+            error.value = null;
+            const result = await apiService.login(loginForm.value);
+            
+            // 保存token和用户信息
+            localStorage.setItem('authToken', result.token);
+            localStorage.setItem('userInfo', JSON.stringify(result.user));
+            
+            currentUser.value = result.user;
+            isLoggedIn.value = true;
+            
+            // 加载CR数据
+            await loadCRs();
+          } catch (err) {
+            error.value = err.message;
+          } finally {
+            isLoading.value = false;
+          }
+          */
+
+          // 模拟登录 - 实际使用时请删除这部分
+          const username = loginForm.value.username.toLowerCase();
+          const user = userDatabase[username];
+          
+          if (user && user.password === loginForm.value.password) {
+            currentUser.value = {
+              name: user.name,
+              email: user.email,
+              role: user.role
+            };
+            isLoggedIn.value = true;
+            error.value = null;
+            loadCRs(); // 加载模拟数据
+          } else {
+            error.value = 'Invalid username or password';
+          }
+        };
+
+        // 退出登录
+        const handleLogout = () => {
+          isLoggedIn.value = false;
+          currentUser.value = {};
+          loginForm.value = { username: '', password: '' };
+          crList.value = [];
+          selectedCrIds.value = [];
+          
+          // 清除本地存储
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('userInfo');
+        };
+
+        // 加载CR数据
+        const loadCRs = async () => {
+          /*
+          // 使用API加载数据 - 取消注释以启用真实API调用
+          try {
+            isLoading.value = true;
+            error.value = null;
+            const token = localStorage.getItem('authToken');
+            crList.value = await apiService.fetchCRs(token);
+          } catch (err) {
+            error.value = err.message;
+          } finally {
+            isLoading.value = false;
+          }
+          */
+
+          // 模拟数据 - 实际使用时请删除这部分
+          isLoading.value = true;
+          setTimeout(() => {
+            crList.value = [
+              {
+                id: 1001,
+                title: 'User Login Function Optimization',
+                description: 'Improve user login process to enhance user experience',
+                requester: 'Kevin',
+                createdAt: new Date(2023, 5, 15),
+                status: 'pending'
+              },
+              {
+                id: 1002,
+                title: 'Database Index Optimization',
+                description: 'Optimize database indexes related to user queries',
+                requester: 'Kevin',
+                createdAt: new Date(2023, 5, 18),
+                status: 'approved'
+              },
+              {
+                id: 1003,
+                title: 'Payment Interface Upgrade',
+                description: 'Upgrade payment interface from V1 to V2 version',
+                requester: 'Kevin',
+                createdAt: new Date(2023, 5, 20),
+                status: 'pending'
+              },
+              {
+                id: 1004,
+                title: 'Frontend Framework Migration',
+                description: 'Migrate frontend framework from Vue2 to Vue3',
+                requester: 'Kevin',
+                createdAt: new Date(2023, 5, 22),
+                status: 'rejected'
+              },
+              {
+                id: 1005,
+                title: 'Add Data Export Function',
+                description: 'Add Excel data export function for users',
+                requester: 'Kevin',
+                createdAt: new Date(2023, 5, 25),
+                status: 'pending'
+              }
+            ];
+            isLoading.value = false;
+          }, 1000);
+        };
+
+        // 根据用户角色过滤CR列表
+        const filteredCrList = computed(() => {
+          if (currentUser.value.role === 'requester') {
+            // 请求者只能看到自己提交的CR
+            return crList.value.filter(cr => cr.requester === currentUser.value.name);
+          }
+          return crList.value;
+        });
+
+        // 检查本地存储中的登录状态
+        const checkAuthStatus = () => {
+          /*
+          const token = localStorage.getItem('authToken');
+          const userInfo = localStorage.getItem('userInfo');
+          
+          if (token && userInfo) {
+            currentUser.value = JSON.parse(userInfo);
+            isLoggedIn.value = true;
+            loadCRs();
+          }
+          */
+          
+          // 模拟：默认不自动登录
+        };
+
         const allSelected = computed(() => {
-          return selectedCrIds.value.length === crList.value.length;
+          return selectedCrIds.value.length === filteredCrList.value.length;
         });
         
         const toggleSelect = (id) => {
+          if (currentUser.value.role === 'requester') return;
+          
           const index = selectedCrIds.value.indexOf(id);
           if (index > -1) {
             selectedCrIds.value.splice(index, 1);
@@ -456,14 +866,27 @@
         };
         
         const selectAll = () => {
-          selectedCrIds.value = crList.value.map(cr => cr.id);
+          selectedCrIds.value = filteredCrList.value.map(cr => cr.id);
         };
         
         const deselectAll = () => {
           selectedCrIds.value = [];
         };
         
-        const batchApprove = () => {
+        const batchApprove = async () => {
+          /*
+          // 使用API批量批准 - 取消注释以启用真实API调用
+          try {
+            const token = localStorage.getItem('authToken');
+            await apiService.batchApprove(selectedCrIds.value, token);
+            await loadCRs(); // 刷新数据
+            selectedCrIds.value = [];
+          } catch (err) {
+            error.value = err.message;
+          }
+          */
+
+          // 模拟批量批准 - 实际使用时请删除这部分
           crList.value.forEach(cr => {
             if (selectedCrIds.value.includes(cr.id)) {
               cr.status = 'approved';
@@ -472,7 +895,20 @@
           selectedCrIds.value = [];
         };
         
-        const batchReject = () => {
+        const batchReject = async () => {
+          /*
+          // 使用API批量拒绝 - 取消注释以启用真实API调用
+          try {
+            const token = localStorage.getItem('authToken');
+            await apiService.batchReject(selectedCrIds.value, token);
+            await loadCRs(); // 刷新数据
+            selectedCrIds.value = [];
+          } catch (err) {
+            error.value = err.message;
+          }
+          */
+
+          // 模拟批量拒绝 - 实际使用时请删除这部分
           crList.value.forEach(cr => {
             if (selectedCrIds.value.includes(cr.id)) {
               cr.status = 'rejected';
@@ -481,62 +917,44 @@
           selectedCrIds.value = [];
         };
         
-        const showDetails = (cr) => {
-          selectedCr.value = cr;
-          showModal.value = true;
-        };
-        
-        const closeModal = () => {
-          showModal.value = false;
-          selectedCr.value = null;
-        };
-        
-        const approveCr = (id) => {
-          const cr = crList.value.find(cr => cr.id === id);
-          if (cr) {
-            cr.status = 'approved';
-          }
-          closeModal();
-        };
-        
-        const rejectCr = (id) => {
-          const cr = crList.value.find(cr => cr.id === id);
-          if (cr) {
-            cr.status = 'rejected';
-          }
-          closeModal();
-        };
-        
         const formatDate = (date) => {
-          return new Date(date).toLocaleDateString('zh-CN');
+          return new Date(date).toLocaleDateString('en-US');
         };
         
         const getStatusText = (status) => {
           const statusMap = {
-            'pending': '待处理',
-            'approved': '已批准',
-            'rejected': '已拒绝'
+            'pending': 'Pending',
+            'approved': 'Approved',
+            'rejected': 'Rejected'
           };
           return statusMap[status] || status;
         };
+
+        // 初始化检查认证状态
+        onMounted(() => {
+          checkAuthStatus();
+        });
         
         return {
-          crList,
+          crList: filteredCrList,
           selectedCrIds,
-          showModal,
-          selectedCr,
           allSelected,
+          isLoading,
+          error,
+          isLoggedIn,
+          currentUser,
+          loginForm,
+          filteredCrList,
           toggleSelect,
           selectAll,
           deselectAll,
           batchApprove,
           batchReject,
-          showDetails,
-          closeModal,
-          approveCr,
-          rejectCr,
           formatDate,
-          getStatusText
+          getStatusText,
+          handleLogin,
+          handleLogout,
+          loadCRs
         };
       }
     }).mount('#app');
