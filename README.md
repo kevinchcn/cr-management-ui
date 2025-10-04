@@ -21,7 +21,13 @@ PowerShell example:
 ```powershell
 # Start a simple static server using Python (requires Python in PATH)
 python -m http.server 8000
+# Or using Node.js
+npx serve .
 # Then open http://localhost:8000/index.html in your browser
+# Or using Docker
+docker build -t cr-management-ui .
+docker run -d -p 3000:3000 --name cr-management-app cr-management-ui
+# Then open http://localhost:3000 in your browser
 ```
 
 Or use VS Code Live Server extension and open `index.html`.
@@ -81,4 +87,4 @@ Make sure your backend returns compatible fields or map them in the frontend.
 If you want to improve or extend the demo, feel free to open a PR or file an issue describing your proposal.
 
 ## License
-No license is included by default. Add a LICENSE file to the repository root if you want to open-source this project.
+MIT License - feel free to use this project for personal or commercial purposes.
