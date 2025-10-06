@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CR Management System</title>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background-color: #f5f7fa;
+      color: #333;
+      line-height: 1.6;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #e0e6ed;
+    }
+    
+    h1 {
+      color: #2c3e50;
+      font-weight: 600;
+    }
+    
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .user-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #3498db;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+    }
+    
+    .role-badge {
+      background-color: #e74c3c;
+      color: white;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      margin-left: 8px;
+    }
+    
+    .role-badge.approver {
+      background-color: #2ecc71;
+    }
+    
+    .role-badge.requester {
+      background-color: #3498db;
+    }
+    
+    .actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn {
+      padding: 10px 16px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .btn-primary {
+      background-color: #3498db;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #2980b9;
+    }
+    
+    .btn-success {
+      background-color: #2ecc71;
+      color: white;
+    }
+    
+    .btn-success:hover {
+      background-color: #27ae60;
+    }
+    
+    .btn-danger {
+      background-color: #e74c3c;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background-color: #c0392b;
+    }
+    
+    .btn:disabled {
+      background-color: #bdc3c7;
+      cursor: not-allowed;
+    }
+    
+    .cr-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 20px;
+    }
+    
+    .cr-card {
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      padding: 20px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      cursor: pointer;
+      position: relative;
+    }
+    
+    .cr-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    
+    .cr-card.selected {
+      border: 2px solid #3498db;
+    }
+    
+    .checkbox {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 18px;
+      height: 18px;
+    }
+    
+    .cr-id {
+      font-weight: 600;
+      color: #3498db;
+      margin-bottom: 5px;
+    }
+    
+    .cr-title {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 10px;
+      color: #2c3e50;
+    }
+    
+    .cr-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+    
+    .status {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+    
+    .status-pending {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    
+    .status-approved {
+      background-color: #d1ecf1;
+      color: #0c5460;
+    }
+    
+    .status-rejected {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #7f8c8d;
+    }
+    
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 15px;
+      color: #bdc3c7;
+    }
+    
+    .batch-info {
+      margin-bottom: 20px;
+      padding: 12px 15px;
+      background-color: #e8f4fd;
+      border-radius: 6px;
+      color: #2c3e50;
+    }
+    
+    /* 登录页面样式 */
+    .login-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    
+    .login-form {
+      background: white;
+      padding: 40px;
+      border-radius: 10px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .login-title {
+      text-align: center;
+      margin-bottom: 30px;
+      color: #2c3e50;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #2c3e50;
+    }
+    
+    .form-input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.2s;
+    }
+    
+    .form-input:focus {
+      outline: none;
+      border-color: #3498db;
+    }
+    
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .login-btn:hover {
+      background-color: #2980b9;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #7f8c8d;
+    }
+    
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      padding: 12px 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    
+    .user-permission-note {
+      background-color: #fff3cd;
+      color: #856404;
+      padding: 12px 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      font-size: 14px;
+    }
+    
+    @media (max-width: 768px) {
+      .cr-list {
+        grid-template-columns: 1fr;
+      }
+      
+      .actions {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 登录页面 -->
+    <div class="login-container" v-if="!isLoggedIn">
+      <div class="login-form">
+        <h2 class="login-title">Login to CR Management System</h2>
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <input type="text" class="form-input" v-model="loginForm.username" placeholder="Enter username" @keyup.enter="handleLogin">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <input type="password" class="form-input" v-model="loginForm.password" placeholder="Enter password" @keyup.enter="handleLogin">
+        </div>
+        <button class="login-btn" @click="handleLogin" :disabled="isLoading">
+          <span v-if="isLoading">
+            <i class="fas fa-spinner fa-spin"></i> Authenticating...
+          </span>
+          <span v-else>
+            <i class="fas fa-sign-in-alt"></i> Login with LDAP
+          </span>
+        </button>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; font-size: 12px;">
+          <strong>LDAP Authentication</strong><br>
+          Uses your corporate LDAP credentials
+        </div>
+      </div>
+    </div>
+
+    <!-- 主应用页面 -->
+    <div class="container" v-else>
+      <header>
+        <h1>Change Request Management</h1>
+        <div class="user-info">
+          <div class="user-avatar">{{ currentUser.name.charAt(0) }}</div>
+          <div>
+            <div>{{ currentUser.name }} <span class="role-badge" :class="currentUser.role">{{ currentUser.role }}</span></div>
+            <div style="font-size: 12px; color: #7f8c8d;">{{ currentUser.email }}</div>
+          </div>
+          <button class="btn btn-primary" @click="handleLogout" style="margin-left: 15px;">
+            <i class="fas fa-sign-out-alt"></i> Logout
+          </button>
+        </div>
+      </header>
+
+      <!-- 权限提示 -->
+      <div class="user-permission-note" v-if="currentUser.role === 'requester'">
+        <i class="fas fa-info-circle"></i> You have requester permissions. You can view your CR status but cannot approve or reject requests.
+      </div>
+
+      <div class="actions" v-if="currentUser.role !== 'requester'">
+        <button class="btn btn-primary" @click="selectAll" v-if="!allSelected">
+          <i class="fas fa-check-square"></i> Select All
+        </button>
+        <button class="btn btn-primary" @click="deselectAll" v-else>
+          <i class="fas fa-square"></i> Deselect All
+        </button>
+        <button class="btn btn-success" @click="batchApprove" :disabled="selectedCrIds.length === 0 || isProcessing">
+          <i class="fas fa-check"></i> Batch Approve ({{ selectedCrIds.length }})
+        </button>
+        <button class="btn btn-danger" @click="batchReject" :disabled="selectedCrIds.length === 0 || isProcessing">
+          <i class="fas fa-times"></i> Batch Reject ({{ selectedCrIds.length }})
+        </button>
+      </div>
+
+      <!-- 加载状态 -->
+      <div class="loading" v-if="isLoading">
+        <i class="fas fa-spinner fa-spin"></i> Loading CRs...
+      </div>
+
+      <!-- 错误信息 -->
+      <div class="error" v-if="error">
+        {{ error }}
+        <button @click="loadCRs" style="margin-left: 10px;">Retry</button>
+      </div>
+
+      <div class="batch-info" v-if="selectedCrIds.length > 0 && currentUser.role !== 'requester'">
+        {{ selectedCrIds.length }} change requests selected
+      </div>
+
+      <div class="cr-list">
+        <div v-for="cr in filteredCrList" :key="cr.id" 
+             class="cr-card" 
+             :class="{ selected: selectedCrIds.includes(cr.id) }"
+             @click="toggleSelect(cr.id)">
+          <input type="checkbox" class="checkbox" 
+                 :checked="selectedCrIds.includes(cr.id)"
+                 @click.stop="toggleSelect(cr.id)"
+                 v-if="currentUser.role !== 'requester'">
+          <div class="cr-id">CR-{{ cr.id }}</div>
+          <div class="cr-title">{{ cr.title }}</div>
+          <div class="cr-description">{{ cr.description }}</div>
+          <div class="cr-meta">
+            <div>
+              <i class="fas fa-user"></i> {{ cr.requester }}
+            </div>
+            <div>
+              <i class="fas fa-calendar"></i> {{ formatDate(cr.createdAt) }}
+            </div>
+          </div>
+          <div class="cr-meta">
+            <div>
+              <span class="status" :class="`status-${cr.status}`">
+                {{ getStatusText(cr.status) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="empty-state" v-if="filteredCrList.length === 0 && !isLoading">
+        <i class="fas fa-folder-open"></i>
+        <h3>No Change Requests</h3>
+        <p>There are no change requests to display</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+    
+    createApp({
+      setup() {
+        // 用户认证状态
+        const isLoggedIn = ref(false);
+        const currentUser = ref({});
+        const loginForm = ref({
+          username: '',
+          password: ''
+        });
+
+        // CR 数据
+        const crList = ref([]);
+        const selectedCrIds = ref([]);
+        
+        // 状态管理
+        const isLoading = ref(false);
+        const isProcessing = ref(false);
+        const error = ref(null);
+
+        // LDAP 认证服务
+        const ldapService = {
+          async authenticate(credentials) {
+            const response = await fetch('/api/ldap/auth', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                // LDAP 配置参数
+                ldapUrl: 'ldap://your-ldap-server.com:389',
+                bindDN: 'cn=admin,dc=company,dc=com',
+                bindPassword: 'your-ldap-admin-password',
+                searchBase: 'ou=users,dc=company,dc=com',
+                searchFilter: `(uid=${credentials.username})`,
+                userPassword: credentials.password,
+                attributes: ['uid', 'givenName', 'sn', 'mail', 'memberOf', 'displayName', 'cn']
+              })
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.message || `LDAP authentication failed: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            
+            if (result.authenticated && result.user) {
+              return {
+                token: result.token || 'ldap-auth-token',
+                user: {
+                  name: result.user.displayName || result.user.givenName || result.user.cn || credentials.username,
+                  email: result.user.mail || `${credentials.username}@company.com`,
+                  role: this.mapLdapGroupToRole(result.user.memberOf),
+                  username: credentials.username
+                }
+              };
+            } else {
+              throw new Error(result.message || 'Invalid LDAP credentials');
+            }
+          },
+          
+          mapLdapGroupToRole(memberOf) {
+            if (!memberOf) return 'requester';
+            
+            // 根据您的 LDAP 组结构进行映射
+            const groups = Array.isArray(memberOf) ? memberOf : [memberOf];
+            
+            if (groups.some(group => group.includes('CN=CR_Admins') || group.includes('CN=Administrators'))) {
+              return 'admin';
+            }
+            if (groups.some(group => group.includes('CN=CR_Approvers') || group.includes('CN=Approvers'))) {
+              return 'approver';
+            }
+            if (groups.some(group => group.includes('CN=CR_Requesters') || group.includes('CN=Users'))) {
+              return 'requester';
+            }
+            
+            return 'requester';
+          }
+        };
+
+        // API 服务函数
+        const apiService = {
+          async fetchCRs(token) {
+            const response = await fetch('/api/change-requests', {
+              headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.message || `Failed to fetch CRs: ${response.status}`);
+            }
+            
+            return response.json();
+          },
+          
+          async batchApprove(ids, token) {
+            const response = await fetch('/api/change-requests/batch-approve', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ 
+                ids,
+                approvedBy: currentUser.value.name,
+                approvedAt: new Date().toISOString()
+              })
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.message || `Batch approval failed: ${response.status}`);
+            }
+            
+            return response.json();
+          },
+          
+          async batchReject(ids, token) {
+            const response = await fetch('/api/change-requests/batch-reject', {
+              method: 'POST', 
+              headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+              },
+              body: JSON.stringify({ 
+                ids,
+                rejectedBy: currentUser.value.name,
+                rejectedAt: new Date().toISOString()
+              })
+            });
+            
+            if (!response.ok) {
+              const errorData = await response.json().catch(() => ({}));
+              throw new Error(errorData.message || `Batch rejection failed: ${response.status}`);
+            }
+            
+            return response.json();
+          }
+        };
+
+        // 登录处理
+        const handleLogin = async () => {
+          if (!loginForm.value.username || !loginForm.value.password) {
+            error.value = 'Please enter username and password';
+            return;
+          }
+
+          try {
+            isLoading.value = true;
+            error.value = null;
+            
+            // LDAP 认证
+            const result = await ldapService.authenticate(loginForm.value);
+            
+            // 保存认证信息
+            localStorage.setItem('authToken', result.token);
+            localStorage.setItem('userInfo', JSON.stringify(result.user));
+            
+            currentUser.value = result.user;
+            isLoggedIn.value = true;
+            
+            // 加载 CR 数据
+            await loadCRs();
+            
+          } catch (err) {
+            error.value = err.message;
+            console.error('LDAP authentication error:', err);
+          } finally {
+            isLoading.value = false;
+          }
+        };
+
+        // 退出登录
+        const handleLogout = () => {
+          isLoggedIn.value = false;
+          currentUser.value = {};
+          loginForm.value = { username: '', password: '' };
+          crList.value = [];
+          selectedCrIds.value = [];
+          
+          // 清除本地存储
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('userInfo');
+        };
+
+        // 加载 CR 数据
+        const loadCRs = async () => {
+          try {
+            isLoading.value = true;
+            error.value = null;
+            const token = localStorage.getItem('authToken');
+            
+            if (!token) {
+              throw new Error('No authentication token found');
+            }
+            
+            crList.value = await apiService.fetchCRs(token);
+            
+          } catch (err) {
+            error.value = err.message;
+            console.error('Failed to load CRs:', err);
+          } finally {
+            isLoading.value = false;
+          }
+        };
+
+        // 批量批准
+        const batchApprove = async () => {
+          try {
+            isProcessing.value = true;
+            error.value = null;
+            const token = localStorage.getItem('authToken');
+            
+            await apiService.batchApprove(selectedCrIds.value, token);
+            
+            // 重新加载数据
+            await loadCRs();
+            selectedCrIds.value = [];
+            
+          } catch (err) {
+            error.value = err.message;
+            console.error('Batch approval error:', err);
+          } finally {
+            isProcessing.value = false;
+          }
+        };
+        
+        // 批量拒绝
+        const batchReject = async () => {
+          try {
+            isProcessing.value = true;
+            error.value = null;
+            const token = localStorage.getItem('authToken');
+            
+            await apiService.batchReject(selectedCrIds.value, token);
+            
+            // 重新加载数据
+            await loadCRs();
+            selectedCrIds.value = [];
+            
+          } catch (err) {
+            error.value = err.message;
+            console.error('Batch rejection error:', err);
+          } finally {
+            isProcessing.value = false;
+          }
+        };
+
+        // 根据用户角色过滤 CR 列表
+        const filteredCrList = computed(() => {
+          if (currentUser.value.role === 'requester') {
+            // 请求者只能看到自己提交的 CR
+            return crList.value.filter(cr => 
+              cr.requester.toLowerCase() === currentUser.value.username?.toLowerCase() ||
+              cr.requester.toLowerCase() === currentUser.value.name?.toLowerCase()
+            );
+          }
+          return crList.value;
+        });
+
+        // 检查本地存储中的登录状态
+        const checkAuthStatus = () => {
+          const token = localStorage.getItem('authToken');
+          const userInfo = localStorage.getItem('userInfo');
+          
+          if (token && userInfo) {
+            try {
+              currentUser.value = JSON.parse(userInfo);
+              isLoggedIn.value = true;
+              loadCRs();
+            } catch (err) {
+              console.error('Failed to parse user info:', err);
+              handleLogout();
+            }
+          }
+        };
+
+        // 工具函数
+        const allSelected = computed(() => {
+          return selectedCrIds.value.length === filteredCrList.value.length;
+        });
+        
+        const toggleSelect = (id) => {
+          if (currentUser.value.role === 'requester') return;
+          
+          const index = selectedCrIds.value.indexOf(id);
+          if (index > -1) {
+            selectedCrIds.value.splice(index, 1);
+          } else {
+            selectedCrIds.value.push(id);
+          }
+        };
+        
+        const selectAll = () => {
+          selectedCrIds.value = filteredCrList.value.map(cr => cr.id);
+        };
+        
+        const deselectAll = () => {
+          selectedCrIds.value = [];
+        };
+        
+        const formatDate = (date) => {
+          return new Date(date).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          });
+        };
+        
+        const getStatusText = (status) => {
+          const statusMap = {
+            'pending': 'Pending',
+            'approved': 'Approved',
+            'rejected': 'Rejected'
+          };
+          return statusMap[status] || status;
+        };
+
+        // 初始化检查认证状态
+        onMounted(() => {
+          checkAuthStatus();
+        });
+        
+        return {
+          crList: filteredCrList,
+          selectedCrIds,
+          allSelected,
+          isLoading,
+          isProcessing,
+          error,
+          isLoggedIn,
+          currentUser,
+          loginForm,
+          filteredCrList,
+          toggleSelect,
+          selectAll,
+          deselectAll,
+          batchApprove,
+          batchReject,
+          formatDate,
+          getStatusText,
+          handleLogin,
+          handleLogout,
+          loadCRs
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
