@@ -484,7 +484,7 @@
           }, 3000);
         };
 
-        // LDAP 认证服务 - 使用相对路径
+        // LDAP 认证服务
         const ldapService = {
           async authenticate(credentials) {
             const response = await fetch('/api/ldap/auth', {
@@ -493,60 +493,30 @@
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                // 您的 LDAP 配置参数
-                ldapUrl: 'ldap://your-ldap-server.com:389',
-                bindDN: 'cn=admin,dc=company,dc=com',
-                bindPassword: 'your-ldap-admin-password',
-                searchBase: 'ou=users,dc=company,dc=com',
-                searchFilter: `(uid=${credentials.username})`,
-                userPassword: credentials.password,
-                attributes: ['uid', 'givenName', 'sn', 'mail', 'memberOf', 'displayName', 'cn']
+                username: credentials.username,
+                password: credentials.password
               })
             });
             
             if (!response.ok) {
               const errorData = await response.json().catch(() => ({}));
-              throw new Error(errorData.message || `LDAP authentication failed: ${response.status}`);
+              throw new Error(errorData.message || `Authentication failed: ${response.status}`);
             }
             
             const result = await response.json();
             
             if (result.authenticated && result.user) {
               return {
-                token: result.token || 'ldap-auth-token',
-                user: {
-                  name: result.user.displayName || result.user.givenName || result.user.cn || credentials.username,
-                  email: result.user.mail || `${credentials.username}@company.com`,
-                  role: this.mapLdapGroupToRole(result.user.memberOf),
-                  username: credentials.username
-                }
+                token: result.token,
+                user: result.user
               };
             } else {
-              throw new Error(result.message || 'Invalid LDAP credentials');
+              throw new Error(result.message || 'Invalid credentials');
             }
-          },
-          
-          mapLdapGroupToRole(memberOf) {
-            if (!memberOf) return 'requester';
-            
-            // 根据您的 LDAP 组结构进行映射
-            const groups = Array.isArray(memberOf) ? memberOf : [memberOf];
-            
-            if (groups.some(group => group.includes('CN=CR_Admins') || group.includes('CN=Administrators'))) {
-              return 'admin';
-            }
-            if (groups.some(group => group.includes('CN=CR_Approvers') || group.includes('CN=Approvers'))) {
-              return 'approver';
-            }
-            if (groups.some(group => group.includes('CN=CR_Requesters') || group.includes('CN=Users'))) {
-              return 'requester';
-            }
-            
-            return 'requester';
           }
         };
 
-        // API 服务函数 - 使用相对路径
+        // API 服务函数
         const apiService = {
           async fetchCRs(token) {
             const response = await fetch('/api/change-requests', {
@@ -635,7 +605,7 @@
             
           } catch (err) {
             error.value = err.message;
-            console.error('LDAP authentication error:', err);
+            console.error('Authentication error:', err);
           } finally {
             isLoading.value = false;
           }
