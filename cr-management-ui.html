@@ -309,6 +309,14 @@
       font-size: 14px;
     }
     
+    .success {
+      background-color: #d1ecf1;
+      color: #0c5460;
+      padding: 12px 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+    
     @media (max-width: 768px) {
       .cr-list {
         grid-template-columns: 1fr;
@@ -344,8 +352,9 @@
         </button>
         
         <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 6px; font-size: 12px;">
-          <strong>LDAP Authentication</strong><br>
-          Uses your corporate LDAP credentials
+          <strong>Test Credentials:</strong><br>
+          • Username: admin, boss, or kevin<br>
+          • Password: admin
         </div>
       </div>
     </div>
@@ -371,6 +380,11 @@
         <i class="fas fa-info-circle"></i> You have requester permissions. You can view your CR status but cannot approve or reject requests.
       </div>
 
+      <!-- 成功消息 -->
+      <div class="success" v-if="successMessage">
+        <i class="fas fa-check-circle"></i> {{ successMessage }}
+      </div>
+
       <div class="actions" v-if="currentUser.role !== 'requester'">
         <button class="btn btn-primary" @click="selectAll" v-if="!allSelected">
           <i class="fas fa-check-square"></i> Select All
@@ -393,7 +407,7 @@
 
       <!-- 错误信息 -->
       <div class="error" v-if="error">
-        {{ error }}
+        <i class="fas fa-exclamation-triangle"></i> {{ error }}
         <button @click="loadCRs" style="margin-left: 10px;">Retry</button>
       </div>
 
@@ -460,8 +474,17 @@
         const isLoading = ref(false);
         const isProcessing = ref(false);
         const error = ref(null);
+        const successMessage = ref(null);
 
-        // LDAP 认证服务
+        // 显示成功消息
+        const showSuccess = (message) => {
+          successMessage.value = message;
+          setTimeout(() => {
+            successMessage.value = null;
+          }, 3000);
+        };
+
+        // LDAP 认证服务 - 使用相对路径
         const ldapService = {
           async authenticate(credentials) {
             const response = await fetch('/api/ldap/auth', {
@@ -470,7 +493,7 @@
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                // LDAP 配置参数
+                // 您的 LDAP 配置参数
                 ldapUrl: 'ldap://your-ldap-server.com:389',
                 bindDN: 'cn=admin,dc=company,dc=com',
                 bindPassword: 'your-ldap-admin-password',
@@ -523,7 +546,7 @@
           }
         };
 
-        // API 服务函数
+        // API 服务函数 - 使用相对路径
         const apiService = {
           async fetchCRs(token) {
             const response = await fetch('/api/change-requests', {
@@ -625,6 +648,8 @@
           loginForm.value = { username: '', password: '' };
           crList.value = [];
           selectedCrIds.value = [];
+          error.value = null;
+          successMessage.value = null;
           
           // 清除本地存储
           localStorage.removeItem('authToken');
@@ -665,6 +690,8 @@
             await loadCRs();
             selectedCrIds.value = [];
             
+            showSuccess('Change requests approved successfully');
+            
           } catch (err) {
             error.value = err.message;
             console.error('Batch approval error:', err);
@@ -685,6 +712,8 @@
             // 重新加载数据
             await loadCRs();
             selectedCrIds.value = [];
+            
+            showSuccess('Change requests rejected successfully');
             
           } catch (err) {
             error.value = err.message;
@@ -776,6 +805,7 @@
           isLoading,
           isProcessing,
           error,
+          successMessage,
           isLoggedIn,
           currentUser,
           loginForm,
