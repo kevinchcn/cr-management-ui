@@ -1,12 +1,13 @@
 #!/usr/bin/env python3
 """
-CR Management System Backend Server - Fixed Version
+CR Management System Backend Server - LDAP Only Version
 """
 
 import http.server
 import socketserver
 import json
 import urllib.parse
+import ldap3
 from datetime import datetime
 import os
 
@@ -43,7 +44,7 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
             return super().do_GET()
     
     def do_POST(self):
-        """Handle POST requests - FIXED VERSION"""
+        """Handle POST requests"""
         print(f"POST request: {self.path}")
         
         # Handle CORS
@@ -77,7 +78,7 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
             self.send_error(404, "API endpoint not found")
     
     def handle_ldap_auth(self, data):
-        """Handle LDAP authentication - FIXED VERSION"""
+        """Handle LDAP authentication - REAL LDAP ONLY"""
         try:
             print(f"LDAP auth data: {data}")
             
@@ -85,7 +86,7 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
             username = data.get('username', '')
             password = data.get('password', '')
             
-            print(f"Auth attempt - Username: {username}, Password: {'*' * len(password)}")
+            print(f"LDAP Auth attempt for user: {username}")
             
             if not username or not password:
                 self.send_json_response(400, {
@@ -94,52 +95,119 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
                 })
                 return
             
-            # 测试用户数据
-            test_users = {
-                'admin': {
-                    'password': 'admin', 
-                    'name': 'System Administrator', 
-                    'role': 'admin', 
-                    'email': 'admin@company.com'
-                },
-                'boss': {
-                    'password': 'admin', 
-                    'name': 'Boss', 
-                    'role': 'approver', 
-                    'email': 'boss@company.com'
-                },
-                'kevin': {
-                    'password': 'admin', 
-                    'name': 'Kevin', 
-                    'role': 'requester', 
-                    'email': 'kevin@company.com'
-                }
-            }
+            # LDAP configuration - UPDATE THESE FOR YOUR ENVIRONMENT
+            LDAP_SERVER = 'ldap://your-ldap-server.com'  # Replace with your LDAP server
+            LDAP_BIND_DN = 'cn=admin,dc=company,dc=com'  # Replace with your bind DN
+            LDAP_BIND_PASSWORD = 'password'  # Replace with your bind password
+            LDAP_SEARCH_BASE = 'ou=users,dc=company,dc=com'  # Replace with your search base
+            LDAP_SEARCH_FILTER = f'(uid={username})'  # Adjust filter for your LDAP
             
-            # 检查用户是否存在且密码正确
-            if username in test_users and test_users[username]['password'] == password:
-                user_info = test_users[username]
-                response = {
-                    'authenticated': True,
-                    'token': f'ldap-token-{username}-{datetime.now().timestamp()}',
-                    'user': {
-                        'name': user_info['name'],
-                        'email': user_info['email'],
-                        'role': user_info['role'],
-                        'username': username
-                    }
-                }
-                print(f"Authentication SUCCESS for user: {username}")
-                self.send_json_response(200, response)
-            else:
-                print(f"Authentication FAILED for user: {username}")
-                self.send_json_response(401, {
+            print(f"Connecting to LDAP server: {LDAP_SERVER}")
+            print(f"Search base: {LDAP_SEARCH_BASE}")
+            print(f"Search filter: {LDAP_SEARCH_FILTER}")
+            
+            try:
+                # Connect to LDAP server
+                server = ldap3.Server(LDAP_SERVER)
+                connection = ldap3.Connection(
+                    server,
+                    user=LDAP_BIND_DN,
+                    password=LDAP_BIND_PASSWORD,
+                    auto_bind=True
+                )
+                
+                print("LDAP bind connection established")
+                
+                # Search for user
+                connection.search(
+                    search_base=LDAP_SEARCH_BASE,
+                    search_filter=LDAP_SEARCH_FILTER,
+                    attributes=['cn', 'mail', 'givenName', 'sn', 'memberOf', 'displayName']
+                )
+                
+                print(f"LDAP search found {len(connection.entries)} entries")
+                
+                if connection.entries:
+                    user_dn = connection.entries[0].entry_dn
+                    print(f"Found user DN: {user_dn}")
+                    
+                    # Try to bind with user credentials
+                    user_connection = ldap3.Connection(
+                        server,
+                        user=user_dn,
+                        password=password,
+                        auto_bind=True
+                    )
+                    
+                    if user_connection.bound:
+                        print(f"LDAP user bind successful for: {username}")
+                        
+                        # Authentication successful - get user attributes
+                        user_attrs = connection.entries[0]
+                        
+                        # Extract user information
+                        user_name = (
+                            user_attrs.displayName.value 
+                            if hasattr(user_attrs, 'displayName') and user_attrs.displayName.value 
+                            else user_attrs.cn.value 
+                            if hasattr(user_attrs, 'cn') and user_attrs.cn.value
+                            else username
+                        )
+                        
+                        user_email = (
+                            user_attrs.mail.value 
+                            if hasattr(user_attrs, 'mail') and user_attrs.mail.value 
+                            else f'{username}@company.com'
+                        )
+                        
+                        member_of = (
+                            user_attrs.memberOf.value 
+                            if hasattr(user_attrs, 'memberOf') and user_attrs.memberOf.value 
+                            else []
+                        )
+                        
+                        user_role = self.map_ldap_role(member_of)
+                        
+                        response = {
+                            'authenticated': True,
+                            'token': f'ldap-token-{username}-{datetime.now().timestamp()}',
+                            'user': {
+                                'name': user_name,
+                                'email': user_email,
+                                'role': user_role,
+                                'username': username
+                            }
+                        }
+                        
+                        self.send_json_response(200, response)
+                        print(f"LDAP Auth SUCCESS for user: {username}, role: {user_role}")
+                        
+                    else:
+                        print(f"LDAP user bind FAILED for: {username}")
+                        self.send_json_response(401, {
+                            'authenticated': False, 
+                            'message': 'Invalid LDAP credentials'
+                        })
+                    
+                    user_connection.unbind()
+                else:
+                    print(f"LDAP user NOT FOUND: {username}")
+                    self.send_json_response(401, {
+                        'authenticated': False, 
+                        'message': 'User not found in LDAP'
+                    })
+                
+                connection.unbind()
+                
+            except Exception as ldap_error:
+                print(f"LDAP connection error: {str(ldap_error)}")
+                self.send_json_response(500, {
                     'authenticated': False, 
-                    'message': 'Invalid username or password'
+                    'message': f'LDAP server error: {str(ldap_error)}'
                 })
             
         except Exception as e:
-            print(f"Auth error: {str(e)}")
+            print(f"Auth processing error: {str(e)}")
             self.send_json_response(500, {
                 'authenticated': False, 
                 'message': f'Internal server error: {str(e)}'
@@ -150,7 +218,7 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
         try:
             print("Fetching CR data...")
             
-            # Mock CR data
+            # Mock CR data - in production, replace with database queries
             cr_data = [
                 {
                     'id': 1001,
@@ -174,22 +242,6 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
                     'description': 'Upgrade payment interface from V1 to V2 version',
                     'requester': 'Kevin',
                     'createdAt': '2023-06-20T00:00:00Z',
-                    'status': 'pending'
-                },
-                {
-                    'id': 1004,
-                    'title': 'Frontend Framework Migration',
-                    'description': 'Migrate frontend framework from Vue2 to Vue3',
-                    'requester': 'Kevin',
-                    'createdAt': '2023-06-22T00:00:00Z',
-                    'status': 'rejected'
-                },
-                {
-                    'id': 1005,
-                    'title': 'Add Data Export Function',
-                    'description': 'Add Excel data export function for users',
-                    'requester': 'Kevin',
-                    'createdAt': '2023-06-25T00:00:00Z',
                     'status': 'pending'
                 }
             ]
@@ -249,6 +301,25 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Batch reject error: {str(e)}")
             self.send_json_response(500, {'success': False, 'message': 'Internal server error'})
     
+    def map_ldap_role(self, member_of):
+        """Map LDAP groups to application roles"""
+        if not member_of:
+            return 'requester'
+        
+        groups = member_of if isinstance(member_of, list) else [member_of]
+        
+        print(f"LDAP groups for role mapping: {groups}")
+        
+        # Adjust these conditions based on your LDAP group structure
+        if any('CN=CR_Admins' in group or 'CN=Administrators' in group for group in groups):
+            return 'admin'
+        if any('CN=CR_Approvers' in group or 'CN=Approvers' in group for group in groups):
+            return 'approver'
+        if any('CN=CR_Requesters' in group or 'CN=Users' in group for group in groups):
+            return 'requester'
+        
+        return 'requester'
+    
     def send_json_response(self, status_code, data):
         """Send JSON response with CORS headers"""
         try:
@@ -284,18 +355,22 @@ def main():
     
     with socketserver.TCPServer(("", PORT), CRManagementHandler) as httpd:
         print("=" * 60)
-        print(f"CR Management System Server")
+        print(f"CR Management System Server - LDAP Version")
         print(f"Running at http://localhost:{PORT}")
+        print("=" * 60)
+        print("IMPORTANT: Configure LDAP settings in server.py")
+        print("Update these variables in handle_ldap_auth():")
+        print("  - LDAP_SERVER")
+        print("  - LDAP_BIND_DN") 
+        print("  - LDAP_BIND_PASSWORD")
+        print("  - LDAP_SEARCH_BASE")
+        print("  - LDAP_SEARCH_FILTER")
         print("=" * 60)
         print("Available endpoints:")
         print("  GET  /api/change-requests - Get all change requests")
         print("  POST /api/ldap/auth - LDAP authentication")
         print("  POST /api/change-requests/batch-approve - Batch approve CRs")
         print("  POST /api/change-requests/batch-reject - Batch reject CRs")
-        print("\nTest credentials:")
-        print("  admin / admin (Administrator)")
-        print("  boss / admin (Approver)")
-        print("  kevin / admin (Requester)")
         print("\nPress Ctrl+C to stop the server")
         print("=" * 60)
         
