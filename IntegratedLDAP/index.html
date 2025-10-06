@@ -487,6 +487,8 @@
         // LDAP 认证服务
         const ldapService = {
           async authenticate(credentials) {
+            console.log('Sending auth request...');
+            
             const response = await fetch('/api/ldap/auth', {
               method: 'POST',
               headers: { 
@@ -498,12 +500,22 @@
               })
             });
             
+            console.log('Auth response status:', response.status);
+            
             if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              throw new Error(errorData.message || `Authentication failed: ${response.status}`);
+              let errorMessage = `Authentication failed: ${response.status}`;
+              try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorMessage;
+              } catch (e) {
+                // If response is not JSON, use status text
+                errorMessage = response.statusText || errorMessage;
+              }
+              throw new Error(errorMessage);
             }
             
             const result = await response.json();
+            console.log('Auth result:', result);
             
             if (result.authenticated && result.user) {
               return {
@@ -511,7 +523,7 @@
                 user: result.user
               };
             } else {
-              throw new Error(result.message || 'Invalid credentials');
+              throw new Error(result.message || 'Authentication failed');
             }
           }
         };
@@ -590,8 +602,18 @@
             isLoading.value = true;
             error.value = null;
             
-            // LDAP 认证
-            const result = await ldapService.authenticate(loginForm.value);
+            console.log('Attempting login with:', {
+              username: loginForm.value.username,
+              password: '***' // Don't log actual password
+            });
+            
+            // LDAP 认证 - 简化请求数据
+            const result = await ldapService.authenticate({
+              username: loginForm.value.username,
+              password: loginForm.value.password
+            });
+            
+            console.log('Login successful:', result.user);
             
             // 保存认证信息
             localStorage.setItem('authToken', result.token);
@@ -604,8 +626,8 @@
             await loadCRs();
             
           } catch (err) {
+            console.error('Login failed:', err);
             error.value = err.message;
-            console.error('Authentication error:', err);
           } finally {
             isLoading.value = false;
           }
