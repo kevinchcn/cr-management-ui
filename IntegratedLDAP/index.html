@@ -603,27 +603,54 @@
             error.value = null;
             
             console.log('Attempting login with:', {
-              username: loginForm.value.username,
-              password: '***' // Don't log actual password
+              username: loginForm.value.username
             });
             
-            // LDAP 认证 - 简化请求数据
-            const result = await ldapService.authenticate({
-              username: loginForm.value.username,
-              password: loginForm.value.password
+            // LDAP 认证
+            const response = await fetch('/api/ldap/auth', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                username: loginForm.value.username,
+                password: loginForm.value.password
+              })
             });
             
-            console.log('Login successful:', result.user);
+            console.log('Auth response status:', response.status);
             
-            // 保存认证信息
-            localStorage.setItem('authToken', result.token);
-            localStorage.setItem('userInfo', JSON.stringify(result.user));
+            if (!response.ok) {
+              let errorMessage = `Authentication failed: ${response.status}`;
+              try {
+                const errorData = await response.json();
+                errorMessage = errorData.message || errorMessage;
+              } catch (e) {
+                errorMessage = response.statusText || errorMessage;
+              }
+              throw new Error(errorMessage);
+            }
             
-            currentUser.value = result.user;
-            isLoggedIn.value = true;
+            const result = await response.json();
+            console.log('Auth result:', result);
             
-            // 加载 CR 数据
-            await loadCRs();
+            if (result.authenticated && result.user) {
+              // 保存认证信息
+              localStorage.setItem('authToken', result.token);
+              localStorage.setItem('userInfo', JSON.stringify(result.user));
+              
+              currentUser.value = result.user;
+              isLoggedIn.value = true;
+              
+              console.log('Login successful, loading CRs...');
+              
+              // 加载 CR 数据
+              await loadCRs();
+              
+              console.log('CRs loaded, user should see main page now');
+            } else {
+              throw new Error(result.message || 'Authentication failed');
+            }
             
           } catch (err) {
             console.error('Login failed:', err);
@@ -632,6 +659,7 @@
             isLoading.value = false;
           }
         };
+
 
         // 退出登录
         const handleLogout = () => {
@@ -659,11 +687,25 @@
               throw new Error('No authentication token found');
             }
             
-            crList.value = await apiService.fetchCRs(token);
+            console.log('Fetching CRs with token:', token);
+            
+            const response = await fetch('/api/change-requests', {
+              headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (!response.ok) {
+              throw new Error(`Failed to fetch CRs: ${response.status}`);
+            }
+            
+            crList.value = await response.json();
+            console.log('CRs loaded successfully:', crList.value.length);
             
           } catch (err) {
-            error.value = err.message;
             console.error('Failed to load CRs:', err);
+            error.value = err.message;
           } finally {
             isLoading.value = false;
           }
@@ -736,6 +778,7 @@
             try {
               currentUser.value = JSON.parse(userInfo);
               isLoggedIn.value = true;
+              console.log('Restored session for user:', currentUser.value.name);
               loadCRs();
             } catch (err) {
               console.error('Failed to parse user info:', err);

@@ -47,9 +47,6 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
         """Handle POST requests"""
         print(f"POST request: {self.path}")
         
-        # Handle CORS
-        self.send_cors_headers()
-        
         content_length = int(self.headers.get('Content-Length', 0))
         print(f"Content-Length: {content_length}")
         
@@ -58,7 +55,6 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
             return
             
         post_data = self.rfile.read(content_length)
-        print(f"Raw data: {post_data}")
         
         try:
             data = json.loads(post_data.decode('utf-8'))
