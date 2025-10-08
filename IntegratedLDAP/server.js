@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CR Management System Backend Server - LDAP Only Version
+CR Management System Backend Server - With Detail Page Support
 """
 
 import http.server
@@ -10,6 +10,7 @@ import urllib.parse
 import ldap3
 from datetime import datetime
 import os
+import re
 
 class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
     
@@ -34,9 +35,7 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
         if self.path == '/api/change-requests':
             self.handle_get_crs()
         elif self.path.startswith('/api/change-requests/'):
-            # 提取 CR ID
-            cr_id = self.path.replace('/api/change-requests/', '')
-            self.handle_get_cr_details(cr_id)
+            self.handle_get_cr_detail()
         elif self.path == '/':
             # Serve the main HTML file
             self.path = '/index.html'
@@ -46,103 +45,6 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
         else:
             # Serve static files
             return super().do_GET()
-    
-    def handle_get_cr_details(self, cr_id):
-        """Handle GET change request details"""
-        try:
-            print(f"Fetching details for CR: {cr_id}")
-            
-            # Mock CR详情数据 - 在生产环境中替换为数据库查询
-            cr_details_data = {
-                    '1001': {
-                        'id': 'CR-1001',
-                        'title': 'User Login Function Optimization',
-                        'description': 'Improve user login process to enhance user experience',
-                        'details': 'Detailed description: The current user login process has multiple steps that can be streamlined. This change request proposes to reduce the login steps from 5 to 2, implement remember me functionality, and add social login options.',
-                        'requester': 'Kevin',
-                        'createdAt': '2023-06-15T00:00:00Z',
-                        'status': 'pending',
-                        'priority': 'High',
-                        'category': 'User Experience',
-                        'estimatedEffort': '5 days',
-                        'impact': 'All users',
-                        'technicalDetails': 'Requires changes to auth service, frontend components, and database schema.',
-                        'testingRequirements': 'Unit tests, integration tests, and user acceptance testing required.'
-                    },
-                    '1002': {
-                        'id': 'CR-1002',
-                        'title': 'Database Index Optimization',
-                        'description': 'Optimize database indexes related to user queries',
-                        'details': 'Detailed description: User table query performance has degraded over time. Analysis shows that adding composite indexes on frequently queried columns can improve performance by 30-40%.',
-                        'requester': 'Kevin',
-                        'createdAt': '2023-06-18T00:00:00Z',
-                        'status': 'approved',
-                        'priority': 'Medium',
-                        'category': 'Performance',
-                        'estimatedEffort': '2 days',
-                        'impact': 'Backend services',
-                        'technicalDetails': 'Add composite indexes on (status, created_at) and (user_type, active) columns.',
-                        'testingRequirements': 'Query performance testing and load testing required.'
-                    },
-                    '1003': {
-                        'id': 'CR-1003',
-                        'title': 'Payment Interface Upgrade',
-                        'description': 'Upgrade payment interface from V1 to V2 version',
-                        'details': 'Detailed description: Current payment interface V1 will be deprecated next month. This CR covers the migration to V2 which includes new security features and supports additional payment methods.',
-                        'requester': 'Kevin',
-                        'createdAt': '2023-06-20T00:00:00Z',
-                        'status': 'pending',
-                        'priority': 'High',
-                        'category': 'Infrastructure',
-                        'estimatedEffort': '10 days',
-                        'impact': 'Payment processing',
-                        'technicalDetails': 'Update API endpoints, modify payment service, update frontend components.',
-                        'testingRequirements': 'End-to-end payment flow testing with sandbox environment.'
-                    },
-                    '1004': {
-                        'id': 'CR-1004',
-                        'title': 'Frontend Framework Migration',
-                        'description': 'Migrate frontend framework from Vue2 to Vue3',
-                        'details': 'Detailed description: Vue2 will reach end of life this year. This migration ensures continued support and access to new features in Vue3.',
-                        'requester': 'Kevin',
-                        'createdAt': '2023-06-22T00:00:00Z',
-                        'status': 'rejected',
-                        'priority': 'Low',
-                        'category': 'Technical Debt',
-                        'estimatedEffort': '15 days',
-                        'impact': 'Frontend application',
-                        'technicalDetails': 'Update dependencies, refactor components to use Composition API, update build configuration.',
-                        'testingRequirements': 'Full regression testing of all frontend features.'
-                    },
-                    '1005': {
-                        'id': 'CR-1005',
-                        'title': 'Add Data Export Function',
-                        'description': 'Add Excel data export function for users',
-                        'details': 'Detailed description: Users have requested the ability to export their data to Excel format for offline analysis. This feature will include filtering and custom column selection.',
-                        'requester': 'Kevin',
-                        'createdAt': '2023-06-25T00:00:00Z',
-                        'status': 'pending',
-                        'priority': 'Medium',
-                        'category': 'Feature Request',
-                        'estimatedEffort': '8 days',
-                        'impact': 'User dashboard',
-                        'technicalDetails': 'Implement export service, add frontend export interface, handle large file generation.',
-                        'testingRequirements': 'Export functionality testing with various data sizes and formats.'
-                    }
-                }
-                
-                # 从ID中提取数字部分（处理 CR-1001 格式）
-                cr_number = cr_id.replace('CR-', '') if 'CR-' in cr_id else cr_id
-                
-                if cr_number in cr_details_data:
-                    self.send_json_response(200, cr_details_data[cr_number])
-                    print(f"CR details sent for: {cr_id}")
-                else:
-                    self.send_json_response(404, {'message': 'Change request not found'})
-                    
-            except Exception as e:
-                print(f"Error getting CR details: {str(e)}")
-                self.send_json_response(500, {'message': 'Internal server error'})
     
     def do_POST(self):
         """Handle POST requests"""
@@ -315,31 +217,110 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
         try:
             print("Fetching CR data...")
             
-            # Mock CR data - in production, replace with database queries
+            # Mock CR data with CHG123456 format
             cr_data = [
                 {
-                    'id': 1001,
+                    'id': 'CHG100001',
                     'title': 'User Login Function Optimization',
                     'description': 'Improve user login process to enhance user experience',
                     'requester': 'Kevin',
                     'createdAt': '2023-06-15T00:00:00Z',
-                    'status': 'pending'
+                    'status': 'pending',
+                    'priority': 'High',
+                    'category': 'Infrastructure',
+                    'impact': 'Medium',
+                    'details': 'The current user login process has multiple steps that can be streamlined. This change will reduce login time by 30% and improve user satisfaction.',
+                    'implementationPlan': '1. Analyze current login flow\n2. Design optimized flow\n3. Develop changes\n4. Test thoroughly\n5. Deploy to production',
+                    'rollbackPlan': 'Revert to previous login implementation if issues arise during deployment.',
+                    'testingPlan': 'Unit tests, integration tests, and user acceptance testing will be performed.',
+                    'approvers': ['Boss', 'Security Team'],
+                    'estimatedEffort': '2 weeks',
+                    'actualEffort': '',
+                    'comments': []
                 },
                 {
-                    'id': 1002,
+                    'id': 'CHG100002',
                     'title': 'Database Index Optimization',
                     'description': 'Optimize database indexes related to user queries',
                     'requester': 'Kevin',
                     'createdAt': '2023-06-18T00:00:00Z',
-                    'status': 'approved'
+                    'status': 'approved',
+                    'priority': 'Medium',
+                    'category': 'Database',
+                    'impact': 'Low',
+                    'details': 'User table query performance is poor. Adding composite indexes will improve query performance by more than 30%.',
+                    'implementationPlan': '1. Identify slow queries\n2. Analyze query patterns\n3. Create optimal indexes\n4. Test performance\n5. Deploy during maintenance window',
+                    'rollbackPlan': 'Drop newly created indexes if performance degrades.',
+                    'testingPlan': 'Performance testing with production-like data.',
+                    'approvers': ['DBA Team'],
+                    'estimatedEffort': '3 days',
+                    'actualEffort': '2 days',
+                    'comments': [
+                        {'user': 'Boss', 'comment': 'Approved - good performance improvement', 'timestamp': '2023-06-19T10:00:00Z'},
+                        {'user': 'DBA Team', 'comment': 'Indexes look optimal', 'timestamp': '2023-06-19T14:30:00Z'}
+                    ]
                 },
                 {
-                    'id': 1003,
+                    'id': 'CHG100003',
                     'title': 'Payment Interface Upgrade',
                     'description': 'Upgrade payment interface from V1 to V2 version',
                     'requester': 'Kevin',
                     'createdAt': '2023-06-20T00:00:00Z',
-                    'status': 'pending'
+                    'status': 'pending',
+                    'priority': 'High',
+                    'category': 'Integration',
+                    'impact': 'High',
+                    'details': 'Current payment interface V1 will be deprecated next month. Upgrade to V2 is required to maintain payment functionality.',
+                    'implementationPlan': '1. Review V2 API documentation\n2. Update integration code\n3. Test with sandbox environment\n4. Deploy to staging\n5. Go-live with monitoring',
+                    'rollbackPlan': 'Switch back to V1 API if V2 integration fails.',
+                    'testingPlan': 'End-to-end testing with all payment methods.',
+                    'approvers': ['Boss', 'Finance Team'],
+                    'estimatedEffort': '3 weeks',
+                    'actualEffort': '',
+                    'comments': [
+                        {'user': 'Finance Team', 'comment': 'Please ensure all tax calculations are preserved', 'timestamp': '2023-06-21T09:15:00Z'}
+                    ]
+                },
+                {
+                    'id': 'CHG100004',
+                    'title': 'Frontend Framework Migration',
+                    'description': 'Migrate frontend framework from Vue2 to Vue3',
+                    'requester': 'Kevin',
+                    'createdAt': '2023-06-22T00:00:00Z',
+                    'status': 'rejected',
+                    'priority': 'Medium',
+                    'category': 'Frontend',
+                    'impact': 'High',
+                    'details': 'Vue2 will stop maintenance by end of year. Migration to Vue3 provides better performance and developer experience.',
+                    'implementationPlan': '1. Audit current components\n2. Create migration plan\n3. Update dependencies\n4. Migrate components incrementally\n5. Comprehensive testing',
+                    'rollbackPlan': 'Revert Git commit if critical issues found.',
+                    'testingPlan': 'Functional testing across all browsers and devices.',
+                    'approvers': ['Boss', 'Frontend Team'],
+                    'estimatedEffort': '4 weeks',
+                    'actualEffort': '',
+                    'comments': [
+                        {'user': 'Boss', 'comment': 'Rejected - too much effort for current sprint', 'timestamp': '2023-06-23T16:45:00Z'},
+                        {'user': 'Frontend Team', 'comment': 'We can revisit this next quarter', 'timestamp': '2023-06-23T17:20:00Z'}
+                    ]
+                },
+                {
+                    'id': 'CHG100005',
+                    'title': 'Add Data Export Function',
+                    'description': 'Add Excel data export function for users',
+                    'requester': 'Kevin',
+                    'createdAt': '2023-06-25T00:00:00Z',
+                    'status': 'pending',
+                    'priority': 'Low',
+                    'category': 'Feature',
+                    'impact': 'Low',
+                    'details': 'Users have requested ability to export their data to Excel format for offline analysis.',
+                    'implementationPlan': '1. Design export functionality\n2. Implement Excel generation\n3. Add export button in UI\n4. Test with various data sets\n5. Deploy',
+                    'rollbackPlan': 'Remove export feature if performance issues occur.',
+                    'testingPlan': 'Test export with large datasets and verify Excel format.',
+                    'approvers': ['Boss'],
+                    'estimatedEffort': '1 week',
+                    'actualEffort': '',
+                    'comments': []
                 }
             ]
             
@@ -348,6 +329,134 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
             
         except Exception as e:
             print(f"Error getting CRs: {str(e)}")
+            self.send_json_response(500, {'message': 'Internal server error'})
+    
+    def handle_get_cr_detail(self):
+        """Handle GET change request detail"""
+        try:
+            # Extract CR ID from path like /api/change-requests/CHG100001
+            cr_id = self.path.split('/')[-1]
+            print(f"Fetching detail for CR: {cr_id}")
+            
+            # Mock CR data - in production, query database
+            all_crs = [
+                {
+                    'id': 'CHG100001',
+                    'title': 'User Login Function Optimization',
+                    'description': 'Improve user login process to enhance user experience',
+                    'requester': 'Kevin',
+                    'createdAt': '2023-06-15T00:00:00Z',
+                    'status': 'pending',
+                    'priority': 'High',
+                    'category': 'Infrastructure',
+                    'impact': 'Medium',
+                    'details': 'The current user login process has multiple steps that can be streamlined. This change will reduce login time by 30% and improve user satisfaction.',
+                    'implementationPlan': '1. Analyze current login flow\n2. Design optimized flow\n3. Develop changes\n4. Test thoroughly\n5. Deploy to production',
+                    'rollbackPlan': 'Revert to previous login implementation if issues arise during deployment.',
+                    'testingPlan': 'Unit tests, integration tests, and user acceptance testing will be performed.',
+                    'approvers': ['Boss', 'Security Team'],
+                    'estimatedEffort': '2 weeks',
+                    'actualEffort': '',
+                    'comments': []
+                },
+                {
+                    'id': 'CHG100002',
+                    'title': 'Database Index Optimization',
+                    'description': 'Optimize database indexes related to user queries',
+                    'requester': 'Kevin',
+                    'createdAt': '2023-06-18T00:00:00Z',
+                    'status': 'approved',
+                    'priority': 'Medium',
+                    'category': 'Database',
+                    'impact': 'Low',
+                    'details': 'User table query performance is poor. Adding composite indexes will improve query performance by more than 30%.',
+                    'implementationPlan': '1. Identify slow queries\n2. Analyze query patterns\n3. Create optimal indexes\n4. Test performance\n5. Deploy during maintenance window',
+                    'rollbackPlan': 'Drop newly created indexes if performance degrades.',
+                    'testingPlan': 'Performance testing with production-like data.',
+                    'approvers': ['DBA Team'],
+                    'estimatedEffort': '3 days',
+                    'actualEffort': '2 days',
+                    'comments': [
+                        {'user': 'Boss', 'comment': 'Approved - good performance improvement', 'timestamp': '2023-06-19T10:00:00Z'},
+                        {'user': 'DBA Team', 'comment': 'Indexes look optimal', 'timestamp': '2023-06-19T14:30:00Z'}
+                    ]
+                },
+                {
+                    'id': 'CHG100003',
+                    'title': 'Payment Interface Upgrade',
+                    'description': 'Upgrade payment interface from V1 to V2 version',
+                    'requester': 'Kevin',
+                    'createdAt': '2023-06-20T00:00:00Z',
+                    'status': 'pending',
+                    'priority': 'High',
+                    'category': 'Integration',
+                    'impact': 'High',
+                    'details': 'Current payment interface V1 will be deprecated next month. Upgrade to V2 is required to maintain payment functionality.',
+                    'implementationPlan': '1. Review V2 API documentation\n2. Update integration code\n3. Test with sandbox environment\n4. Deploy to staging\n5. Go-live with monitoring',
+                    'rollbackPlan': 'Switch back to V1 API if V2 integration fails.',
+                    'testingPlan': 'End-to-end testing with all payment methods.',
+                    'approvers': ['Boss', 'Finance Team'],
+                    'estimatedEffort': '3 weeks',
+                    'actualEffort': '',
+                    'comments': [
+                        {'user': 'Finance Team', 'comment': 'Please ensure all tax calculations are preserved', 'timestamp': '2023-06-21T09:15:00Z'}
+                    ]
+                },
+                {
+                    'id': 'CHG100004',
+                    'title': 'Frontend Framework Migration',
+                    'description': 'Migrate frontend framework from Vue2 to Vue3',
+                    'requester': 'Kevin',
+                    'createdAt': '2023-06-22T00:00:00Z',
+                    'status': 'rejected',
+                    'priority': 'Medium',
+                    'category': 'Frontend',
+                    'impact': 'High',
+                    'details': 'Vue2 will stop maintenance by end of year. Migration to Vue3 provides better performance and developer experience.',
+                    'implementationPlan': '1. Audit current components\n2. Create migration plan\n3. Update dependencies\n4. Migrate components incrementally\n5. Comprehensive testing',
+                    'rollbackPlan': 'Revert Git commit if critical issues found.',
+                    'testingPlan': 'Functional testing across all browsers and devices.',
+                    'approvers': ['Boss', 'Frontend Team'],
+                    'estimatedEffort': '4 weeks',
+                    'actualEffort': '',
+                    'comments': [
+                        {'user': 'Boss', 'comment': 'Rejected - too much effort for current sprint', 'timestamp': '2023-06-23T16:45:00Z'},
+                        {'user': 'Frontend Team', 'comment': 'We can revisit this next quarter', 'timestamp': '2023-06-23T17:20:00Z'}
+                    ]
+                },
+                {
+                    'id': 'CHG100005',
+                    'title': 'Add Data Export Function',
+                    'description': 'Add Excel data export function for users',
+                    'requester': 'Kevin',
+                    'createdAt': '2023-06-25T00:00:00Z',
+                    'status': 'pending',
+                    'priority': 'Low',
+                    'category': 'Feature',
+                    'impact': 'Low',
+                    'details': 'Users have requested ability to export their data to Excel format for offline analysis.',
+                    'implementationPlan': '1. Design export functionality\n2. Implement Excel generation\n3. Add export button in UI\n4. Test with various data sets\n5. Deploy',
+                    'rollbackPlan': 'Remove export feature if performance issues occur.',
+                    'testingPlan': 'Test export with large datasets and verify Excel format.',
+                    'approvers': ['Boss'],
+                    'estimatedEffort': '1 week',
+                    'actualEffort': '',
+                    'comments': []
+                }
+            ]
+            
+            # Find the specific CR
+            cr_detail = next((cr for cr in all_crs if cr['id'] == cr_id), None)
+            
+            if cr_detail:
+                self.send_json_response(200, cr_detail)
+                print(f"CR detail sent for: {cr_id}")
+            else:
+                self.send_json_response(404, {'message': 'Change request not found'})
+                print(f"CR not found: {cr_id}")
+            
+        except Exception as e:
+            print(f"Error getting CR detail: {str(e)}")
             self.send_json_response(500, {'message': 'Internal server error'})
     
     def handle_batch_approve(self, data):
@@ -452,19 +561,12 @@ def main():
     
     with socketserver.TCPServer(("", PORT), CRManagementHandler) as httpd:
         print("=" * 60)
-        print(f"CR Management System Server - LDAP Version")
+        print(f"CR Management System Server - With Detail Page Support")
         print(f"Running at http://localhost:{PORT}")
         print("=" * 60)
-        print("IMPORTANT: Configure LDAP settings in server.py")
-        print("Update these variables in handle_ldap_auth():")
-        print("  - LDAP_SERVER")
-        print("  - LDAP_BIND_DN") 
-        print("  - LDAP_BIND_PASSWORD")
-        print("  - LDAP_SEARCH_BASE")
-        print("  - LDAP_SEARCH_FILTER")
-        print("=" * 60)
-        print("Available endpoints:")
-        print("  GET  /api/change-requests - Get all change requests")
+        print("New endpoints:")
+        print("  GET  /api/change-requests/CHG123456 - Get CR details")
+        print("  GET  /api/change-requests - Get all CRs")
         print("  POST /api/ldap/auth - LDAP authentication")
         print("  POST /api/change-requests/batch-approve - Batch approve CRs")
         print("  POST /api/change-requests/batch-reject - Batch reject CRs")

@@ -78,6 +78,7 @@
     .actions {
       display: flex;
       gap: 10px;
+      margin-bottom: 20px;
     }
     
     .btn {
@@ -119,6 +120,15 @@
       background-color: #c0392b;
     }
     
+    .btn-secondary {
+      background-color: #95a5a6;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #7f8c8d;
+    }
+    
     .btn:disabled {
       background-color: #bdc3c7;
       cursor: not-allowed;
@@ -126,7 +136,7 @@
     
     .cr-list {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
       gap: 20px;
     }
     
@@ -161,6 +171,7 @@
       font-weight: 600;
       color: #3498db;
       margin-bottom: 5px;
+      font-size: 16px;
     }
     
     .cr-title {
@@ -199,6 +210,151 @@
     .status-rejected {
       background-color: #f8d7da;
       color: #721c24;
+    }
+    
+    .priority-high {
+      color: #e74c3c;
+      font-weight: 600;
+    }
+    
+    .priority-medium {
+      color: #f39c12;
+      font-weight: 600;
+    }
+    
+    .priority-low {
+      color: #27ae60;
+      font-weight: 600;
+    }
+    
+    /* 详情页样式 */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    
+    .modal {
+      background: white;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 800px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+    
+    .modal-header {
+      padding: 20px;
+      border-bottom: 1px solid #e0e6ed;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f8f9fa;
+      border-radius: 8px 8px 0 0;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #7f8c8d;
+    }
+    
+    .modal-body {
+      padding: 20px;
+    }
+    
+    .detail-section {
+      margin-bottom: 25px;
+    }
+    
+    .detail-section-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #2c3e50;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #3498db;
+    }
+    
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+    
+    .detail-item {
+      margin-bottom: 12px;
+    }
+    
+    .detail-label {
+      font-weight: 500;
+      color: #7f8c8d;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+    
+    .detail-value {
+      color: #2c3e50;
+      font-size: 15px;
+    }
+    
+    .detail-text {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      border-left: 4px solid #3498db;
+      white-space: pre-line;
+    }
+    
+    .comments-list {
+      margin-top: 10px;
+    }
+    
+    .comment-item {
+      background: #f8f9fa;
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      border-left: 3px solid #3498db;
+    }
+    
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    
+    .comment-user {
+      font-weight: 600;
+      color: #2c3e50;
+    }
+    
+    .comment-time {
+      color: #7f8c8d;
+      font-size: 12px;
+    }
+    
+    .comment-text {
+      color: #2c3e50;
+      line-height: 1.5;
     }
     
     .empty-state {
@@ -325,97 +481,15 @@
       .actions {
         flex-wrap: wrap;
       }
-    }
-
-    /* 详情弹窗样式 */
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-    }
-
-    .modal {
-        background: white;
-        border-radius: 8px;
-        width: 90%;
-        max-width: 800px;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
-    }
-
-    .modal-header {
-        padding: 20px;
-        border-bottom: 1px solid #e0e6ed;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .modal-title {
-        font-size: 20px;
-        font-weight: 600;
-        color: #2c3e50;
-    }
-
-    .close-btn {
-        background: none;
-        border: none;
-        font-size: 24px;
-        cursor: pointer;
-        color: #7f8c8d;
-    }
-
-    .modal-body {
-        padding: 20px;
-    }
-
-    .detail-row {
-        margin-bottom: 15px;
-        display: flex;
-        flex-wrap: wrap;
-    }
-
-    .detail-label {
-        font-weight: 500;
-        color: #7f8c8d;
-        margin-bottom: 5px;
-        width: 150px;
-        flex-shrink: 0;
-    }
-
-    .detail-value {
-        color: #2c3e50;
-        flex: 1;
-        min-width: 200px;
-    }
-
-    .detail-section {
-        margin-bottom: 25px;
-        padding-bottom: 15px;
-        border-bottom: 1px solid #e0e6ed;
-    }
-
-    .section-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 15px;
-    }
-
-    .modal-footer {
-        padding: 15px 20px;
-        border-top: 1px solid #e0e6ed;
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
+      
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .modal {
+        width: 95%;
+        margin: 10px;
+      }
     }
   </style>
 </head>
@@ -465,102 +539,7 @@
           </button>
         </div>
       </header>
-      
-      <!-- 详情弹窗 -->
-      <div class="modal-overlay" v-if="showModal" @click.self="closeModal">
-          <div class="modal">
-              <div class="modal-header">
-                  <h2 class="modal-title">Change Request Details</h2>
-                  <button class="close-btn" @click="closeModal">&times;</button>
-              </div>
-              <div class="modal-body" v-if="selectedCrDetail">
-                  <!-- 基本信息部分 -->
-                  <div class="detail-section">
-                      <h3 class="section-title">Basic Information</h3>
-                      <div class="detail-row">
-                          <div class="detail-label">CR ID</div>
-                          <div class="detail-value">{{ selectedCrDetail.id }}</div>
-                      </div>
-                      <div class="detail-row">
-                          <div class="detail-label">Title</div>
-                          <div class="detail-value">{{ selectedCrDetail.title }}</div>
-                      </div>
-                      <div class="detail-row">
-                          <div class="detail-label">Description</div>
-                          <div class="detail-value">{{ selectedCrDetail.description }}</div>
-                      </div>
-                      <div class="detail-row">
-                          <div class="detail-label">Status</div>
-                          <div class="detail-value">
-                              <span class="status" :class="`status-${selectedCrDetail.status}`">
-                                  {{ getStatusText(selectedCrDetail.status) }}
-                              </span>
-                          </div>
-                      </div>
-                      <div class="detail-row">
-                          <div class="detail-label">Requester</div>
-                          <div class="detail-value">{{ selectedCrDetail.requester }}</div>
-                      </div>
-                      <div class="detail-row">
-                          <div class="detail-label">Created Date</div>
-                          <div class="detail-value">{{ formatDate(selectedCrDetail.createdAt) }}</div>
-                      </div>
-                  </div>
 
-                  <!-- 分类信息部分 -->
-                  <div class="detail-section">
-                      <h3 class="section-title">Classification</h3>
-                      <div class="detail-row">
-                          <div class="detail-label">Priority</div>
-                          <div class="detail-value">{{ selectedCrDetail.priority }}</div>
-                      </div>
-                      <div class="detail-row">
-                          <div class="detail-label">Category</div>
-                          <div class="detail-value">{{ selectedCrDetail.category }}</div>
-                      </div>
-                      <div class="detail-row">
-                          <div class="detail-label">Estimated Effort</div>
-                          <div class="detail-value">{{ selectedCrDetail.estimatedEffort }}</div>
-                      </div>
-                      <div class="detail-row">
-                          <div class="detail-label">Impact</div>
-                          <div class="detail-value">{{ selectedCrDetail.impact }}</div>
-                      </div>
-                  </div>
-
-                  <!-- 详细信息部分 -->
-                  <div class="detail-section">
-                      <h3 class="section-title">Detailed Information</h3>
-                      <div class="detail-row">
-                          <div class="detail-label">Details</div>
-                          <div class="detail-value">{{ selectedCrDetail.details }}</div>
-                      </div>
-                      <div class="detail-row">
-                          <div class="detail-label">Technical Details</div>
-                          <div class="detail-value">{{ selectedCrDetail.technicalDetails }}</div>
-                      </div>
-                      <div class="detail-row">
-                          <div class="detail-label">Testing Requirements</div>
-                          <div class="detail-value">{{ selectedCrDetail.testingRequirements }}</div>
-                      </div>
-                  </div>
-              </div>
-              <div class="modal-footer">
-                  <button class="btn btn-success" @click="approveCr(selectedCrDetail.id)" 
-                          v-if="selectedCrDetail && selectedCrDetail.status === 'pending' && currentUser.role !== 'requester'">
-                      <i class="fas fa-check"></i> Approve
-                  </button>
-                  <button class="btn btn-danger" @click="rejectCr(selectedCrDetail.id)" 
-                          v-if="selectedCrDetail && selectedCrDetail.status === 'pending' && currentUser.role !== 'requester'">
-                      <i class="fas fa-times"></i> Reject
-                  </button>
-                  <button class="btn btn-primary" @click="closeModal">
-                      Close
-                  </button>
-              </div>
-          </div>
-      </div>
-      
       <!-- 权限提示 -->
       <div class="user-permission-note" v-if="currentUser.role === 'requester'">
         <i class="fas fa-info-circle"></i> You have requester permissions. You can view your CR status but cannot approve or reject requests.
@@ -610,12 +589,15 @@
                  :checked="selectedCrIds.includes(cr.id)"
                  @click.stop="toggleSelect(cr.id)"
                  v-if="currentUser.role !== 'requester'">
-          <div class="cr-id">CR-{{ cr.id }}</div>
+          <div class="cr-id">{{ cr.id }}</div>
           <div class="cr-title">{{ cr.title }}</div>
           <div class="cr-description">{{ cr.description }}</div>
           <div class="cr-meta">
             <div>
               <i class="fas fa-user"></i> {{ cr.requester }}
+              <span class="priority-{{ cr.priority.toLowerCase() }}" style="margin-left: 10px;">
+                <i class="fas fa-flag"></i> {{ cr.priority }}
+              </span>
             </div>
             <div>
               <i class="fas fa-calendar"></i> {{ formatDate(cr.createdAt) }}
@@ -627,36 +609,8 @@
                 {{ getStatusText(cr.status) }}
               </span>
             </div>
-          </div>
-          <div class="cr-list">
-            <div v-for="cr in filteredCrList" :key="cr.id" 
-                class="cr-card" 
-                :class="{ selected: selectedCrIds.includes(cr.id) }">
-                <input type="checkbox" class="checkbox" 
-                      :checked="selectedCrIds.includes(cr.id)"
-                      @click.stop="toggleSelect(cr.id)"
-                      v-if="currentUser.role !== 'requester'">
-                <div class="cr-id">{{ cr.id }}</div>
-                <div class="cr-title">{{ cr.title }}</div>
-                <div class="cr-description">{{ cr.description }}</div>
-                <div class="cr-meta">
-                    <div>
-                        <i class="fas fa-user"></i> {{ cr.requester }}
-                    </div>
-                    <div>
-                        <i class="fas fa-calendar"></i> {{ formatDate(cr.createdAt) }}
-                    </div>
-                </div>
-                <div class="cr-meta">
-                    <div>
-                        <span class="status" :class="`status-${cr.status}`">
-                            {{ getStatusText(cr.status) }}
-                        </span>
-                    </div>
-                    <div @click.stop="showDetails(cr.id)" style="cursor: pointer; color: #3498db;">
-                        <i class="fas fa-eye"></i> View Details
-                    </div>
-                </div>
+            <div @click.stop="showDetails(cr)">
+              <i class="fas fa-eye"></i> View Details
             </div>
           </div>
         </div>
@@ -666,6 +620,150 @@
         <i class="fas fa-folder-open"></i>
         <h3>No Change Requests</h3>
         <p>There are no change requests to display</p>
+      </div>
+
+      <!-- 详情弹窗 -->
+      <div class="modal-overlay" v-if="showModal" @click.self="closeModal">
+        <div class="modal">
+          <div class="modal-header">
+            <h2 class="modal-title">Change Request Details - {{ selectedCr.id }}</h2>
+            <button class="close-btn" @click="closeModal">&times;</button>
+          </div>
+          <div class="modal-body" v-if="selectedCr">
+            <!-- 基本信息 -->
+            <div class="detail-section">
+              <h3 class="detail-section-title">Basic Information</h3>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <div class="detail-label">Title</div>
+                  <div class="detail-value">{{ selectedCr.title }}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Status</div>
+                  <div class="detail-value">
+                    <span class="status" :class="`status-${selectedCr.status}`">
+                      {{ getStatusText(selectedCr.status) }}
+                    </span>
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Priority</div>
+                  <div class="detail-value priority-{{ selectedCr.priority.toLowerCase() }}">
+                    {{ selectedCr.priority }}
+                  </div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Category</div>
+                  <div class="detail-value">{{ selectedCr.category }}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Impact</div>
+                  <div class="detail-value">{{ selectedCr.impact }}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Requester</div>
+                  <div class="detail-value">{{ selectedCr.requester }}</div>
+                </div>
+                <div class="detail-item">
+                  <div class="detail-label">Created Date</div>
+                  <div class="detail-value">{{ formatDateTime(selectedCr.createdAt) }}</div>
+                </div>
+              </div>
+              <div class="detail-item">
+                <div class="detail-label">Description</div>
+                <div class="detail-value">{{ selectedCr.description }}</div>
+              </div>
+            </div>
+
+            <!-- 详细信息 -->
+            <div class="detail-section">
+              <h3 class="detail-section-title">Detailed Information</h3>
+              <div class="detail-item">
+                <div class="detail-label">Details</div>
+                <div class="detail-text">{{ selectedCr.details }}</div>
+              </div>
+            </div>
+
+            <!-- 实施计划 -->
+            <div class="detail-section">
+              <h3 class="detail-section-title">Implementation Plan</h3>
+              <div class="detail-item">
+                <div class="detail-text">{{ selectedCr.implementationPlan }}</div>
+              </div>
+            </div>
+
+            <!-- 回滚计划 -->
+            <div class="detail-section">
+              <h3 class="detail-section-title">Rollback Plan</h3>
+              <div class="detail-item">
+                <div class="detail-text">{{ selectedCr.rollbackPlan }}</div>
+              </div>
+            </div>
+
+            <!-- 测试计划 -->
+            <div class="detail-section">
+              <h3 class="detail-section-title">Testing Plan</h3>
+              <div class="detail-item">
+                <div class="detail-text">{{ selectedCr.testingPlan }}</div>
+              </div>
+            </div>
+
+            <!-- 工作量 -->
+            <div class="detail-section">
+              <h3 class="detail-section-title">Effort Estimation</h3>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <div class="detail-label">Estimated Effort</div>
+                  <div class="detail-value">{{ selectedCr.estimatedEffort }}</div>
+                </div>
+                <div class="detail-item" v-if="selectedCr.actualEffort">
+                  <div class="detail-label">Actual Effort</div>
+                  <div class="detail-value">{{ selectedCr.actualEffort }}</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 审批人 -->
+            <div class="detail-section">
+              <h3 class="detail-section-title">Approvers</h3>
+              <div class="detail-item">
+                <div class="detail-value">
+                  <span v-for="approver in selectedCr.approvers" :key="approver" 
+                        class="status status-pending" style="margin-right: 8px; margin-bottom: 8px; display: inline-block;">
+                    {{ approver }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 评论 -->
+            <div class="detail-section" v-if="selectedCr.comments && selectedCr.comments.length > 0">
+              <h3 class="detail-section-title">Comments</h3>
+              <div class="comments-list">
+                <div v-for="comment in selectedCr.comments" :key="comment.timestamp" class="comment-item">
+                  <div class="comment-header">
+                    <span class="comment-user">{{ comment.user }}</span>
+                    <span class="comment-time">{{ formatDateTime(comment.timestamp) }}</span>
+                  </div>
+                  <div class="comment-text">{{ comment.comment }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid #e0e6ed; display: flex; justify-content: flex-end; gap: 10px;">
+            <button class="btn btn-success" @click="approveCr(selectedCr.id)" 
+                    v-if="selectedCr && selectedCr.status === 'pending' && currentUser.role !== 'requester'">
+              <i class="fas fa-check"></i> Approve
+            </button>
+            <button class="btn btn-danger" @click="rejectCr(selectedCr.id)" 
+                    v-if="selectedCr && selectedCr.status === 'pending' && currentUser.role !== 'requester'">
+              <i class="fas fa-times"></i> Reject
+            </button>
+            <button class="btn btn-secondary" @click="closeModal">
+              Close
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -686,15 +784,15 @@
         // CR 数据
         const crList = ref([]);
         const selectedCrIds = ref([]);
+        const showModal = ref(false);
+        const selectedCr = ref(null);
+        const isLoadingDetail = ref(false);
         
         // 状态管理
         const isLoading = ref(false);
         const isProcessing = ref(false);
         const error = ref(null);
         const successMessage = ref(null);
-        const showModal = ref(false);
-        const selectedCrDetail = ref(null);
-        const isDetailLoading = ref(false);
 
         // 显示成功消息
         const showSuccess = (message) => {
@@ -707,8 +805,6 @@
         // LDAP 认证服务
         const ldapService = {
           async authenticate(credentials) {
-            console.log('Sending auth request...');
-            
             const response = await fetch('/api/ldap/auth', {
               method: 'POST',
               headers: { 
@@ -720,22 +816,18 @@
               })
             });
             
-            console.log('Auth response status:', response.status);
-            
             if (!response.ok) {
               let errorMessage = `Authentication failed: ${response.status}`;
               try {
                 const errorData = await response.json();
                 errorMessage = errorData.message || errorMessage;
               } catch (e) {
-                // If response is not JSON, use status text
                 errorMessage = response.statusText || errorMessage;
               }
               throw new Error(errorMessage);
             }
             
             const result = await response.json();
-            console.log('Auth result:', result);
             
             if (result.authenticated && result.user) {
               return {
@@ -759,8 +851,22 @@
             });
             
             if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              throw new Error(errorData.message || `Failed to fetch CRs: ${response.status}`);
+              throw new Error(`Failed to fetch CRs: ${response.status}`);
+            }
+            
+            return response.json();
+          },
+
+          async fetchCRDetail(crId, token) {
+            const response = await fetch(`/api/change-requests/${crId}`, {
+              headers: { 
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              }
+            });
+            
+            if (!response.ok) {
+              throw new Error(`Failed to fetch CR detail: ${response.status}`);
             }
             
             return response.json();
@@ -781,8 +887,7 @@
             });
             
             if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              throw new Error(errorData.message || `Batch approval failed: ${response.status}`);
+              throw new Error(`Batch approval failed: ${response.status}`);
             }
             
             return response.json();
@@ -803,8 +908,7 @@
             });
             
             if (!response.ok) {
-              const errorData = await response.json().catch(() => ({}));
-              throw new Error(errorData.message || `Batch rejection failed: ${response.status}`);
+              throw new Error(`Batch rejection failed: ${response.status}`);
             }
             
             return response.json();
@@ -822,64 +926,25 @@
             isLoading.value = true;
             error.value = null;
             
-            console.log('Attempting login with:', {
-              username: loginForm.value.username
-            });
-            
             // LDAP 认证
-            const response = await fetch('/api/ldap/auth', {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                username: loginForm.value.username,
-                password: loginForm.value.password
-              })
-            });
+            const result = await ldapService.authenticate(loginForm.value);
             
-            console.log('Auth response status:', response.status);
+            // 保存认证信息
+            localStorage.setItem('authToken', result.token);
+            localStorage.setItem('userInfo', JSON.stringify(result.user));
             
-            if (!response.ok) {
-              let errorMessage = `Authentication failed: ${response.status}`;
-              try {
-                const errorData = await response.json();
-                errorMessage = errorData.message || errorMessage;
-              } catch (e) {
-                errorMessage = response.statusText || errorMessage;
-              }
-              throw new Error(errorMessage);
-            }
+            currentUser.value = result.user;
+            isLoggedIn.value = true;
             
-            const result = await response.json();
-            console.log('Auth result:', result);
-            
-            if (result.authenticated && result.user) {
-              // 保存认证信息
-              localStorage.setItem('authToken', result.token);
-              localStorage.setItem('userInfo', JSON.stringify(result.user));
-              
-              currentUser.value = result.user;
-              isLoggedIn.value = true;
-              
-              console.log('Login successful, loading CRs...');
-              
-              // 加载 CR 数据
-              await loadCRs();
-              
-              console.log('CRs loaded, user should see main page now');
-            } else {
-              throw new Error(result.message || 'Authentication failed');
-            }
+            // 加载 CR 数据
+            await loadCRs();
             
           } catch (err) {
-            console.error('Login failed:', err);
             error.value = err.message;
           } finally {
             isLoading.value = false;
           }
         };
-
 
         // 退出登录
         const handleLogout = () => {
@@ -890,6 +955,8 @@
           selectedCrIds.value = [];
           error.value = null;
           successMessage.value = null;
+          showModal.value = false;
+          selectedCr.value = null;
           
           // 清除本地存储
           localStorage.removeItem('authToken');
@@ -907,28 +974,36 @@
               throw new Error('No authentication token found');
             }
             
-            console.log('Fetching CRs with token:', token);
-            
-            const response = await fetch('/api/change-requests', {
-              headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            });
-            
-            if (!response.ok) {
-              throw new Error(`Failed to fetch CRs: ${response.status}`);
-            }
-            
-            crList.value = await response.json();
-            console.log('CRs loaded successfully:', crList.value.length);
+            crList.value = await apiService.fetchCRs(token);
             
           } catch (err) {
-            console.error('Failed to load CRs:', err);
             error.value = err.message;
           } finally {
             isLoading.value = false;
           }
+        };
+
+        // 显示详情
+        const showDetails = async (cr) => {
+          try {
+            isLoadingDetail.value = true;
+            const token = localStorage.getItem('authToken');
+            
+            // 获取详细的 CR 信息
+            selectedCr.value = await apiService.fetchCRDetail(cr.id, token);
+            showModal.value = true;
+            
+          } catch (err) {
+            error.value = `Failed to load CR details: ${err.message}`;
+          } finally {
+            isLoadingDetail.value = false;
+          }
+        };
+
+        // 关闭详情弹窗
+        const closeModal = () => {
+          showModal.value = false;
+          selectedCr.value = null;
         };
 
         // 批量批准
@@ -948,7 +1023,6 @@
             
           } catch (err) {
             error.value = err.message;
-            console.error('Batch approval error:', err);
           } finally {
             isProcessing.value = false;
           }
@@ -971,7 +1045,48 @@
             
           } catch (err) {
             error.value = err.message;
-            console.error('Batch rejection error:', err);
+          } finally {
+            isProcessing.value = false;
+          }
+        };
+
+        // 单个批准
+        const approveCr = async (crId) => {
+          try {
+            isProcessing.value = true;
+            const token = localStorage.getItem('authToken');
+            
+            await apiService.batchApprove([crId], token);
+            
+            // 重新加载数据并关闭弹窗
+            await loadCRs();
+            closeModal();
+            
+            showSuccess('Change request approved successfully');
+            
+          } catch (err) {
+            error.value = err.message;
+          } finally {
+            isProcessing.value = false;
+          }
+        };
+
+        // 单个拒绝
+        const rejectCr = async (crId) => {
+          try {
+            isProcessing.value = true;
+            const token = localStorage.getItem('authToken');
+            
+            await apiService.batchReject([crId], token);
+            
+            // 重新加载数据并关闭弹窗
+            await loadCRs();
+            closeModal();
+            
+            showSuccess('Change request rejected successfully');
+            
+          } catch (err) {
+            error.value = err.message;
           } finally {
             isProcessing.value = false;
           }
@@ -998,10 +1113,8 @@
             try {
               currentUser.value = JSON.parse(userInfo);
               isLoggedIn.value = true;
-              console.log('Restored session for user:', currentUser.value.name);
               loadCRs();
             } catch (err) {
-              console.error('Failed to parse user info:', err);
               handleLogout();
             }
           }
@@ -1038,6 +1151,16 @@
             day: 'numeric'
           });
         };
+
+        const formatDateTime = (date) => {
+          return new Date(date).toLocaleString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        };
         
         const getStatusText = (status) => {
           const statusMap = {
@@ -1052,82 +1175,16 @@
         onMounted(() => {
           checkAuthStatus();
         });
-
-        // 添加详情页相关方法
-        const showDetails = async (crId) => {
-            try {
-                isDetailLoading.value = true;
-                console.log('Loading details for CR:', crId);
-                
-                const token = localStorage.getItem('authToken');
-                if (!token) {
-                    throw new Error('No authentication token found');
-                }
-
-                // 从ID中提取数字部分（处理 CR-1001 格式）
-                const crNumber = crId.replace('CR-', '');
-                
-                const response = await fetch(`/api/change-requests/${crNumber}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                });
-                
-                if (!response.ok) {
-                    throw new Error(`Failed to fetch CR details: ${response.status}`);
-                }
-                
-                selectedCrDetail.value = await response.json();
-                showModal.value = true;
-                console.log('CR details loaded:', selectedCrDetail.value);
-                
-            } catch (err) {
-                console.error('Failed to load CR details:', err);
-                error.value = err.message;
-            } finally {
-                isDetailLoading.value = false;
-            }
-        };
-
-        const closeModal = () => {
-            showModal.value = false;
-            selectedCrDetail.value = null;
-        };
-
-        // 单个CR审批方法
-        const approveCr = async (crId) => {
-            try {
-                const token = localStorage.getItem('authToken');
-                await apiService.batchApprove([crId], token);
-                await loadCRs();
-                closeModal();
-                showSuccess('Change request approved successfully');
-            } catch (err) {
-                error.value = err.message;
-                console.error('Single CR approval error:', err);
-            }
-        };
-
-        const rejectCr = async (crId) => {
-            try {
-                const token = localStorage.getItem('authToken');
-                await apiService.batchReject([crId], token);
-                await loadCRs();
-                closeModal();
-                showSuccess('Change request rejected successfully');
-            } catch (err) {
-                error.value = err.message;
-                console.error('Single CR rejection error:', err);
-            }
-        };
         
         return {
           crList: filteredCrList,
           selectedCrIds,
+          showModal,
+          selectedCr,
           allSelected,
           isLoading,
           isProcessing,
+          isLoadingDetail,
           error,
           successMessage,
           isLoggedIn,
@@ -1139,18 +1196,16 @@
           deselectAll,
           batchApprove,
           batchReject,
+          approveCr,
+          rejectCr,
+          showDetails,
+          closeModal,
           formatDate,
+          formatDateTime,
           getStatusText,
           handleLogin,
           handleLogout,
-          loadCRs,
-          showModal,
-          selectedCrDetail,
-          isDetailLoading,
-          showDetails,
-          closeModal,
-          approveCr,
-          rejectCr
+          loadCRs
         };
       }
     }).mount('#app');
