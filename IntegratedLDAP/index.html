@@ -326,6 +326,97 @@
         flex-wrap: wrap;
       }
     }
+
+    /* 详情弹窗样式 */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal {
+        background: white;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .modal-header {
+        padding: 20px;
+        border-bottom: 1px solid #e0e6ed;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .modal-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        color: #7f8c8d;
+    }
+
+    .modal-body {
+        padding: 20px;
+    }
+
+    .detail-row {
+        margin-bottom: 15px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .detail-label {
+        font-weight: 500;
+        color: #7f8c8d;
+        margin-bottom: 5px;
+        width: 150px;
+        flex-shrink: 0;
+    }
+
+    .detail-value {
+        color: #2c3e50;
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .detail-section {
+        margin-bottom: 25px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e0e6ed;
+    }
+
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 15px;
+    }
+
+    .modal-footer {
+        padding: 15px 20px;
+        border-top: 1px solid #e0e6ed;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
   </style>
 </head>
 <body>
@@ -374,7 +465,102 @@
           </button>
         </div>
       </header>
+      
+      <!-- 详情弹窗 -->
+      <div class="modal-overlay" v-if="showModal" @click.self="closeModal">
+          <div class="modal">
+              <div class="modal-header">
+                  <h2 class="modal-title">Change Request Details</h2>
+                  <button class="close-btn" @click="closeModal">&times;</button>
+              </div>
+              <div class="modal-body" v-if="selectedCrDetail">
+                  <!-- 基本信息部分 -->
+                  <div class="detail-section">
+                      <h3 class="section-title">Basic Information</h3>
+                      <div class="detail-row">
+                          <div class="detail-label">CR ID</div>
+                          <div class="detail-value">{{ selectedCrDetail.id }}</div>
+                      </div>
+                      <div class="detail-row">
+                          <div class="detail-label">Title</div>
+                          <div class="detail-value">{{ selectedCrDetail.title }}</div>
+                      </div>
+                      <div class="detail-row">
+                          <div class="detail-label">Description</div>
+                          <div class="detail-value">{{ selectedCrDetail.description }}</div>
+                      </div>
+                      <div class="detail-row">
+                          <div class="detail-label">Status</div>
+                          <div class="detail-value">
+                              <span class="status" :class="`status-${selectedCrDetail.status}`">
+                                  {{ getStatusText(selectedCrDetail.status) }}
+                              </span>
+                          </div>
+                      </div>
+                      <div class="detail-row">
+                          <div class="detail-label">Requester</div>
+                          <div class="detail-value">{{ selectedCrDetail.requester }}</div>
+                      </div>
+                      <div class="detail-row">
+                          <div class="detail-label">Created Date</div>
+                          <div class="detail-value">{{ formatDate(selectedCrDetail.createdAt) }}</div>
+                      </div>
+                  </div>
 
+                  <!-- 分类信息部分 -->
+                  <div class="detail-section">
+                      <h3 class="section-title">Classification</h3>
+                      <div class="detail-row">
+                          <div class="detail-label">Priority</div>
+                          <div class="detail-value">{{ selectedCrDetail.priority }}</div>
+                      </div>
+                      <div class="detail-row">
+                          <div class="detail-label">Category</div>
+                          <div class="detail-value">{{ selectedCrDetail.category }}</div>
+                      </div>
+                      <div class="detail-row">
+                          <div class="detail-label">Estimated Effort</div>
+                          <div class="detail-value">{{ selectedCrDetail.estimatedEffort }}</div>
+                      </div>
+                      <div class="detail-row">
+                          <div class="detail-label">Impact</div>
+                          <div class="detail-value">{{ selectedCrDetail.impact }}</div>
+                      </div>
+                  </div>
+
+                  <!-- 详细信息部分 -->
+                  <div class="detail-section">
+                      <h3 class="section-title">Detailed Information</h3>
+                      <div class="detail-row">
+                          <div class="detail-label">Details</div>
+                          <div class="detail-value">{{ selectedCrDetail.details }}</div>
+                      </div>
+                      <div class="detail-row">
+                          <div class="detail-label">Technical Details</div>
+                          <div class="detail-value">{{ selectedCrDetail.technicalDetails }}</div>
+                      </div>
+                      <div class="detail-row">
+                          <div class="detail-label">Testing Requirements</div>
+                          <div class="detail-value">{{ selectedCrDetail.testingRequirements }}</div>
+                      </div>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                  <button class="btn btn-success" @click="approveCr(selectedCrDetail.id)" 
+                          v-if="selectedCrDetail && selectedCrDetail.status === 'pending' && currentUser.role !== 'requester'">
+                      <i class="fas fa-check"></i> Approve
+                  </button>
+                  <button class="btn btn-danger" @click="rejectCr(selectedCrDetail.id)" 
+                          v-if="selectedCrDetail && selectedCrDetail.status === 'pending' && currentUser.role !== 'requester'">
+                      <i class="fas fa-times"></i> Reject
+                  </button>
+                  <button class="btn btn-primary" @click="closeModal">
+                      Close
+                  </button>
+              </div>
+          </div>
+      </div>
+      
       <!-- 权限提示 -->
       <div class="user-permission-note" v-if="currentUser.role === 'requester'">
         <i class="fas fa-info-circle"></i> You have requester permissions. You can view your CR status but cannot approve or reject requests.
@@ -442,6 +628,37 @@
               </span>
             </div>
           </div>
+          <div class="cr-list">
+            <div v-for="cr in filteredCrList" :key="cr.id" 
+                class="cr-card" 
+                :class="{ selected: selectedCrIds.includes(cr.id) }">
+                <input type="checkbox" class="checkbox" 
+                      :checked="selectedCrIds.includes(cr.id)"
+                      @click.stop="toggleSelect(cr.id)"
+                      v-if="currentUser.role !== 'requester'">
+                <div class="cr-id">{{ cr.id }}</div>
+                <div class="cr-title">{{ cr.title }}</div>
+                <div class="cr-description">{{ cr.description }}</div>
+                <div class="cr-meta">
+                    <div>
+                        <i class="fas fa-user"></i> {{ cr.requester }}
+                    </div>
+                    <div>
+                        <i class="fas fa-calendar"></i> {{ formatDate(cr.createdAt) }}
+                    </div>
+                </div>
+                <div class="cr-meta">
+                    <div>
+                        <span class="status" :class="`status-${cr.status}`">
+                            {{ getStatusText(cr.status) }}
+                        </span>
+                    </div>
+                    <div @click.stop="showDetails(cr.id)" style="cursor: pointer; color: #3498db;">
+                        <i class="fas fa-eye"></i> View Details
+                    </div>
+                </div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -475,6 +692,9 @@
         const isProcessing = ref(false);
         const error = ref(null);
         const successMessage = ref(null);
+        const showModal = ref(false);
+        const selectedCrDetail = ref(null);
+        const isDetailLoading = ref(false);
 
         // 显示成功消息
         const showSuccess = (message) => {
@@ -832,6 +1052,75 @@
         onMounted(() => {
           checkAuthStatus();
         });
+
+        // 添加详情页相关方法
+        const showDetails = async (crId) => {
+            try {
+                isDetailLoading.value = true;
+                console.log('Loading details for CR:', crId);
+                
+                const token = localStorage.getItem('authToken');
+                if (!token) {
+                    throw new Error('No authentication token found');
+                }
+
+                // 从ID中提取数字部分（处理 CR-1001 格式）
+                const crNumber = crId.replace('CR-', '');
+                
+                const response = await fetch(`/api/change-requests/${crNumber}`, {
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`Failed to fetch CR details: ${response.status}`);
+                }
+                
+                selectedCrDetail.value = await response.json();
+                showModal.value = true;
+                console.log('CR details loaded:', selectedCrDetail.value);
+                
+            } catch (err) {
+                console.error('Failed to load CR details:', err);
+                error.value = err.message;
+            } finally {
+                isDetailLoading.value = false;
+            }
+        };
+
+        const closeModal = () => {
+            showModal.value = false;
+            selectedCrDetail.value = null;
+        };
+
+        // 单个CR审批方法
+        const approveCr = async (crId) => {
+            try {
+                const token = localStorage.getItem('authToken');
+                await apiService.batchApprove([crId], token);
+                await loadCRs();
+                closeModal();
+                showSuccess('Change request approved successfully');
+            } catch (err) {
+                error.value = err.message;
+                console.error('Single CR approval error:', err);
+            }
+        };
+
+        const rejectCr = async (crId) => {
+            try {
+                const token = localStorage.getItem('authToken');
+                await apiService.batchReject([crId], token);
+                await loadCRs();
+                closeModal();
+                showSuccess('Change request rejected successfully');
+            } catch (err) {
+                error.value = err.message;
+                console.error('Single CR rejection error:', err);
+            }
+        };
         
         return {
           crList: filteredCrList,
@@ -854,7 +1143,14 @@
           getStatusText,
           handleLogin,
           handleLogout,
-          loadCRs
+          loadCRs,
+          showModal,
+          selectedCrDetail,
+          isDetailLoading,
+          showDetails,
+          closeModal,
+          approveCr,
+          rejectCr
         };
       }
     }).mount('#app');

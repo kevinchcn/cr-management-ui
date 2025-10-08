@@ -33,6 +33,10 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
         
         if self.path == '/api/change-requests':
             self.handle_get_crs()
+        elif self.path.startswith('/api/change-requests/'):
+            # 提取 CR ID
+            cr_id = self.path.replace('/api/change-requests/', '')
+            self.handle_get_cr_details(cr_id)
         elif self.path == '/':
             # Serve the main HTML file
             self.path = '/index.html'
@@ -42,6 +46,103 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
         else:
             # Serve static files
             return super().do_GET()
+    
+    def handle_get_cr_details(self, cr_id):
+        """Handle GET change request details"""
+        try:
+            print(f"Fetching details for CR: {cr_id}")
+            
+            # Mock CR详情数据 - 在生产环境中替换为数据库查询
+            cr_details_data = {
+                    '1001': {
+                        'id': 'CR-1001',
+                        'title': 'User Login Function Optimization',
+                        'description': 'Improve user login process to enhance user experience',
+                        'details': 'Detailed description: The current user login process has multiple steps that can be streamlined. This change request proposes to reduce the login steps from 5 to 2, implement remember me functionality, and add social login options.',
+                        'requester': 'Kevin',
+                        'createdAt': '2023-06-15T00:00:00Z',
+                        'status': 'pending',
+                        'priority': 'High',
+                        'category': 'User Experience',
+                        'estimatedEffort': '5 days',
+                        'impact': 'All users',
+                        'technicalDetails': 'Requires changes to auth service, frontend components, and database schema.',
+                        'testingRequirements': 'Unit tests, integration tests, and user acceptance testing required.'
+                    },
+                    '1002': {
+                        'id': 'CR-1002',
+                        'title': 'Database Index Optimization',
+                        'description': 'Optimize database indexes related to user queries',
+                        'details': 'Detailed description: User table query performance has degraded over time. Analysis shows that adding composite indexes on frequently queried columns can improve performance by 30-40%.',
+                        'requester': 'Kevin',
+                        'createdAt': '2023-06-18T00:00:00Z',
+                        'status': 'approved',
+                        'priority': 'Medium',
+                        'category': 'Performance',
+                        'estimatedEffort': '2 days',
+                        'impact': 'Backend services',
+                        'technicalDetails': 'Add composite indexes on (status, created_at) and (user_type, active) columns.',
+                        'testingRequirements': 'Query performance testing and load testing required.'
+                    },
+                    '1003': {
+                        'id': 'CR-1003',
+                        'title': 'Payment Interface Upgrade',
+                        'description': 'Upgrade payment interface from V1 to V2 version',
+                        'details': 'Detailed description: Current payment interface V1 will be deprecated next month. This CR covers the migration to V2 which includes new security features and supports additional payment methods.',
+                        'requester': 'Kevin',
+                        'createdAt': '2023-06-20T00:00:00Z',
+                        'status': 'pending',
+                        'priority': 'High',
+                        'category': 'Infrastructure',
+                        'estimatedEffort': '10 days',
+                        'impact': 'Payment processing',
+                        'technicalDetails': 'Update API endpoints, modify payment service, update frontend components.',
+                        'testingRequirements': 'End-to-end payment flow testing with sandbox environment.'
+                    },
+                    '1004': {
+                        'id': 'CR-1004',
+                        'title': 'Frontend Framework Migration',
+                        'description': 'Migrate frontend framework from Vue2 to Vue3',
+                        'details': 'Detailed description: Vue2 will reach end of life this year. This migration ensures continued support and access to new features in Vue3.',
+                        'requester': 'Kevin',
+                        'createdAt': '2023-06-22T00:00:00Z',
+                        'status': 'rejected',
+                        'priority': 'Low',
+                        'category': 'Technical Debt',
+                        'estimatedEffort': '15 days',
+                        'impact': 'Frontend application',
+                        'technicalDetails': 'Update dependencies, refactor components to use Composition API, update build configuration.',
+                        'testingRequirements': 'Full regression testing of all frontend features.'
+                    },
+                    '1005': {
+                        'id': 'CR-1005',
+                        'title': 'Add Data Export Function',
+                        'description': 'Add Excel data export function for users',
+                        'details': 'Detailed description: Users have requested the ability to export their data to Excel format for offline analysis. This feature will include filtering and custom column selection.',
+                        'requester': 'Kevin',
+                        'createdAt': '2023-06-25T00:00:00Z',
+                        'status': 'pending',
+                        'priority': 'Medium',
+                        'category': 'Feature Request',
+                        'estimatedEffort': '8 days',
+                        'impact': 'User dashboard',
+                        'technicalDetails': 'Implement export service, add frontend export interface, handle large file generation.',
+                        'testingRequirements': 'Export functionality testing with various data sizes and formats.'
+                    }
+                }
+                
+                # 从ID中提取数字部分（处理 CR-1001 格式）
+                cr_number = cr_id.replace('CR-', '') if 'CR-' in cr_id else cr_id
+                
+                if cr_number in cr_details_data:
+                    self.send_json_response(200, cr_details_data[cr_number])
+                    print(f"CR details sent for: {cr_id}")
+                else:
+                    self.send_json_response(404, {'message': 'Change request not found'})
+                    
+            except Exception as e:
+                print(f"Error getting CR details: {str(e)}")
+                self.send_json_response(500, {'message': 'Internal server error'})
     
     def do_POST(self):
         """Handle POST requests"""
