@@ -197,6 +197,21 @@
       font-weight: 500;
     }
     
+    .status-pass {
+      background-color: #d1ecf1;
+      color: #0c5460;
+    }
+    
+    .status-fail {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    
+    .status-warning {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    
     .status-pending {
       background-color: #fff3cd;
       color: #856404;
@@ -245,8 +260,8 @@
     .modal {
       background: white;
       border-radius: 8px;
-      width: 90%;
-      max-width: 800px;
+      width: 95%;
+      max-width: 1200px;
       max-height: 90vh;
       overflow-y: auto;
       box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
@@ -280,81 +295,40 @@
       padding: 20px;
     }
     
-    .detail-section {
-      margin-bottom: 25px;
+    /* 表格样式 */
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     }
     
-    .detail-section-title {
-      font-size: 18px;
+    .metrics-table th {
+      background-color: #3498db;
+      color: white;
+      padding: 12px 15px;
+      text-align: left;
       font-weight: 600;
-      color: #2c3e50;
-      margin-bottom: 15px;
-      padding-bottom: 8px;
-      border-bottom: 2px solid #3498db;
-    }
-    
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 15px;
-    }
-    
-    .detail-item {
-      margin-bottom: 12px;
-    }
-    
-    .detail-label {
-      font-weight: 500;
-      color: #7f8c8d;
-      margin-bottom: 5px;
-      font-size: 14px;
-    }
-    
-    .detail-value {
-      color: #2c3e50;
-      font-size: 15px;
-    }
-    
-    .detail-text {
-      background: #f8f9fa;
-      padding: 12px;
-      border-radius: 6px;
-      border-left: 4px solid #3498db;
-      white-space: pre-line;
-    }
-    
-    .comments-list {
-      margin-top: 10px;
-    }
-    
-    .comment-item {
-      background: #f8f9fa;
-      padding: 12px;
-      border-radius: 6px;
-      margin-bottom: 10px;
-      border-left: 3px solid #3498db;
-    }
-    
-    .comment-header {
-      display: flex;
-      justify-content: space-between;
-      margin-bottom: 8px;
-    }
-    
-    .comment-user {
-      font-weight: 600;
-      color: #2c3e50;
-    }
-    
-    .comment-time {
-      color: #7f8c8d;
+      text-transform: uppercase;
       font-size: 12px;
+      letter-spacing: 0.5px;
     }
     
-    .comment-text {
-      color: #2c3e50;
-      line-height: 1.5;
+    .metrics-table td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #e0e6ed;
+      vertical-align: top;
+    }
+    
+    .metrics-table tr:hover {
+      background-color: #f8f9fa;
+    }
+    
+    .metrics-table tr:last-child td {
+      border-bottom: none;
     }
     
     .empty-state {
@@ -482,8 +456,9 @@
         flex-wrap: wrap;
       }
       
-      .detail-grid {
-        grid-template-columns: 1fr;
+      .metrics-table {
+        display: block;
+        overflow-x: auto;
       }
       
       .modal {
@@ -609,8 +584,8 @@
                 {{ getStatusText(cr.status) }}
               </span>
             </div>
-            <div @click.stop="showDetails(cr)">
-              <i class="fas fa-eye"></i> View Details
+            <div @click.stop="showMetrics(cr)">
+              <i class="fas fa-chart-bar"></i> View Metrics
             </div>
           </div>
         </div>
@@ -622,143 +597,83 @@
         <p>There are no change requests to display</p>
       </div>
 
-      <!-- 详情弹窗 -->
+      <!-- 指标详情弹窗 -->
       <div class="modal-overlay" v-if="showModal" @click.self="closeModal">
         <div class="modal">
           <div class="modal-header">
-            <h2 class="modal-title">Change Request Details - {{ selectedCr.id }}</h2>
+            <h2 class="modal-title">Change Request Metrics - {{ selectedCr.id }}</h2>
             <button class="close-btn" @click="closeModal">&times;</button>
           </div>
-          <div class="modal-body" v-if="selectedCr">
+          <div class="modal-body">
             <!-- 基本信息 -->
-            <div class="detail-section">
-              <h3 class="detail-section-title">Basic Information</h3>
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <div class="detail-label">Title</div>
-                  <div class="detail-value">{{ selectedCr.title }}</div>
+            <div style="margin-bottom: 25px; padding: 15px; background: #f8f9fa; border-radius: 6px;">
+              <h3 style="margin-bottom: 10px; color: #2c3e50;">Basic Information</h3>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div>
+                  <strong>Title:</strong> {{ selectedCr.title }}
                 </div>
-                <div class="detail-item">
-                  <div class="detail-label">Status</div>
-                  <div class="detail-value">
-                    <span class="status" :class="`status-${selectedCr.status}`">
-                      {{ getStatusText(selectedCr.status) }}
-                    </span>
-                  </div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Priority</div>
-                  <div class="detail-value priority-{{ selectedCr.priority.toLowerCase() }}">
-                    {{ selectedCr.priority }}
-                  </div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Category</div>
-                  <div class="detail-value">{{ selectedCr.category }}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Impact</div>
-                  <div class="detail-value">{{ selectedCr.impact }}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Requester</div>
-                  <div class="detail-value">{{ selectedCr.requester }}</div>
-                </div>
-                <div class="detail-item">
-                  <div class="detail-label">Created Date</div>
-                  <div class="detail-value">{{ formatDateTime(selectedCr.createdAt) }}</div>
-                </div>
-              </div>
-              <div class="detail-item">
-                <div class="detail-label">Description</div>
-                <div class="detail-value">{{ selectedCr.description }}</div>
-              </div>
-            </div>
-
-            <!-- 详细信息 -->
-            <div class="detail-section">
-              <h3 class="detail-section-title">Detailed Information</h3>
-              <div class="detail-item">
-                <div class="detail-label">Details</div>
-                <div class="detail-text">{{ selectedCr.details }}</div>
-              </div>
-            </div>
-
-            <!-- 实施计划 -->
-            <div class="detail-section">
-              <h3 class="detail-section-title">Implementation Plan</h3>
-              <div class="detail-item">
-                <div class="detail-text">{{ selectedCr.implementationPlan }}</div>
-              </div>
-            </div>
-
-            <!-- 回滚计划 -->
-            <div class="detail-section">
-              <h3 class="detail-section-title">Rollback Plan</h3>
-              <div class="detail-item">
-                <div class="detail-text">{{ selectedCr.rollbackPlan }}</div>
-              </div>
-            </div>
-
-            <!-- 测试计划 -->
-            <div class="detail-section">
-              <h3 class="detail-section-title">Testing Plan</h3>
-              <div class="detail-item">
-                <div class="detail-text">{{ selectedCr.testingPlan }}</div>
-              </div>
-            </div>
-
-            <!-- 工作量 -->
-            <div class="detail-section">
-              <h3 class="detail-section-title">Effort Estimation</h3>
-              <div class="detail-grid">
-                <div class="detail-item">
-                  <div class="detail-label">Estimated Effort</div>
-                  <div class="detail-value">{{ selectedCr.estimatedEffort }}</div>
-                </div>
-                <div class="detail-item" v-if="selectedCr.actualEffort">
-                  <div class="detail-label">Actual Effort</div>
-                  <div class="detail-value">{{ selectedCr.actualEffort }}</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- 审批人 -->
-            <div class="detail-section">
-              <h3 class="detail-section-title">Approvers</h3>
-              <div class="detail-item">
-                <div class="detail-value">
-                  <span v-for="approver in selectedCr.approvers" :key="approver" 
-                        class="status status-pending" style="margin-right: 8px; margin-bottom: 8px; display: inline-block;">
-                    {{ approver }}
+                <div>
+                  <strong>Status:</strong> 
+                  <span class="status" :class="`status-${selectedCr.status}`" style="margin-left: 8px;">
+                    {{ getStatusText(selectedCr.status) }}
                   </span>
                 </div>
+                <div>
+                  <strong>Priority:</strong> 
+                  <span :class="`priority-${selectedCr.priority.toLowerCase()}`">
+                    {{ selectedCr.priority }}
+                  </span>
+                </div>
+                <div>
+                  <strong>Category:</strong> {{ selectedCr.category }}
+                </div>
               </div>
             </div>
 
-            <!-- 评论 -->
-            <div class="detail-section" v-if="selectedCr.comments && selectedCr.comments.length > 0">
-              <h3 class="detail-section-title">Comments</h3>
-              <div class="comments-list">
-                <div v-for="comment in selectedCr.comments" :key="comment.timestamp" class="comment-item">
-                  <div class="comment-header">
-                    <span class="comment-user">{{ comment.user }}</span>
-                    <span class="comment-time">{{ formatDateTime(comment.timestamp) }}</span>
-                  </div>
-                  <div class="comment-text">{{ comment.comment }}</div>
-                </div>
-              </div>
+            <!-- 指标表格 -->
+            <div v-if="metricsData && metricsData.metrics && metricsData.metrics.length > 0">
+              <h3 style="margin-bottom: 15px; color: #2c3e50;">Metrics Overview</h3>
+              <table class="metrics-table">
+                <thead>
+                  <tr>
+                    <th>Metric</th>
+                    <th>Checking Rules</th>
+                    <th>Status</th>
+                    <th>Result</th>
+                    <th>Remedition</th>
+                    <th>Remediate Via</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="(metric, index) in metricsData.metrics" :key="index">
+                    <td><strong>{{ metric.Metric }}</strong></td>
+                    <td>{{ metric.Checking_rules }}</td>
+                    <td>
+                      <span class="status" :class="`status-${metric.Status.toLowerCase()}`">
+                        {{ metric.Status }}
+                      </span>
+                    </td>
+                    <td>{{ metric.Result }}</td>
+                    <td>{{ metric.Remedition }}</td>
+                    <td>{{ metric.remediate_via }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- 无数据状态 -->
+            <div v-else-if="!isLoadingDetail" class="empty-state">
+              <i class="fas fa-chart-line"></i>
+              <h3>No Metrics Available</h3>
+              <p>No metrics data found for this change request</p>
+            </div>
+
+            <!-- 加载状态 -->
+            <div v-else class="loading">
+              <i class="fas fa-spinner fa-spin"></i> Loading metrics...
             </div>
           </div>
           <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid #e0e6ed; display: flex; justify-content: flex-end; gap: 10px;">
-            <button class="btn btn-success" @click="approveCr(selectedCr.id)" 
-                    v-if="selectedCr && selectedCr.status === 'pending' && currentUser.role !== 'requester'">
-              <i class="fas fa-check"></i> Approve
-            </button>
-            <button class="btn btn-danger" @click="rejectCr(selectedCr.id)" 
-                    v-if="selectedCr && selectedCr.status === 'pending' && currentUser.role !== 'requester'">
-              <i class="fas fa-times"></i> Reject
-            </button>
             <button class="btn btn-secondary" @click="closeModal">
               Close
             </button>
@@ -786,6 +701,7 @@
         const selectedCrIds = ref([]);
         const showModal = ref(false);
         const selectedCr = ref(null);
+        const metricsData = ref(null);
         const isLoadingDetail = ref(false);
         
         // 状态管理
@@ -857,7 +773,7 @@
             return response.json();
           },
 
-          async fetchCRDetail(crId, token) {
+          async fetchCRMetrics(crId, token) {
             const response = await fetch(`/api/change-requests/${crId}`, {
               headers: { 
                 'Authorization': `Bearer ${token}`,
@@ -866,7 +782,7 @@
             });
             
             if (!response.ok) {
-              throw new Error(`Failed to fetch CR detail: ${response.status}`);
+              throw new Error(`Failed to fetch CR metrics: ${response.status}`);
             }
             
             return response.json();
@@ -957,6 +873,7 @@
           successMessage.value = null;
           showModal.value = false;
           selectedCr.value = null;
+          metricsData.value = null;
           
           // 清除本地存储
           localStorage.removeItem('authToken');
@@ -983,18 +900,21 @@
           }
         };
 
-        // 显示详情
-        const showDetails = async (cr) => {
+        // 显示指标
+        const showMetrics = async (cr) => {
           try {
             isLoadingDetail.value = true;
+            showModal.value = true;
+            selectedCr.value = cr;
+            metricsData.value = null;
+            
             const token = localStorage.getItem('authToken');
             
-            // 获取详细的 CR 信息
-            selectedCr.value = await apiService.fetchCRDetail(cr.id, token);
-            showModal.value = true;
+            // 获取指标数据
+            metricsData.value = await apiService.fetchCRMetrics(cr.id, token);
             
           } catch (err) {
-            error.value = `Failed to load CR details: ${err.message}`;
+            error.value = `Failed to load metrics: ${err.message}`;
           } finally {
             isLoadingDetail.value = false;
           }
@@ -1004,6 +924,7 @@
         const closeModal = () => {
           showModal.value = false;
           selectedCr.value = null;
+          metricsData.value = null;
         };
 
         // 批量批准
@@ -1042,48 +963,6 @@
             selectedCrIds.value = [];
             
             showSuccess('Change requests rejected successfully');
-            
-          } catch (err) {
-            error.value = err.message;
-          } finally {
-            isProcessing.value = false;
-          }
-        };
-
-        // 单个批准
-        const approveCr = async (crId) => {
-          try {
-            isProcessing.value = true;
-            const token = localStorage.getItem('authToken');
-            
-            await apiService.batchApprove([crId], token);
-            
-            // 重新加载数据并关闭弹窗
-            await loadCRs();
-            closeModal();
-            
-            showSuccess('Change request approved successfully');
-            
-          } catch (err) {
-            error.value = err.message;
-          } finally {
-            isProcessing.value = false;
-          }
-        };
-
-        // 单个拒绝
-        const rejectCr = async (crId) => {
-          try {
-            isProcessing.value = true;
-            const token = localStorage.getItem('authToken');
-            
-            await apiService.batchReject([crId], token);
-            
-            // 重新加载数据并关闭弹窗
-            await loadCRs();
-            closeModal();
-            
-            showSuccess('Change request rejected successfully');
             
           } catch (err) {
             error.value = err.message;
@@ -1151,22 +1030,15 @@
             day: 'numeric'
           });
         };
-
-        const formatDateTime = (date) => {
-          return new Date(date).toLocaleString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-          });
-        };
         
         const getStatusText = (status) => {
           const statusMap = {
             'pending': 'Pending',
             'approved': 'Approved',
-            'rejected': 'Rejected'
+            'rejected': 'Rejected',
+            'pass': 'Pass',
+            'fail': 'Fail',
+            'warning': 'Warning'
           };
           return statusMap[status] || status;
         };
@@ -1181,6 +1053,7 @@
           selectedCrIds,
           showModal,
           selectedCr,
+          metricsData,
           allSelected,
           isLoading,
           isProcessing,
@@ -1196,12 +1069,9 @@
           deselectAll,
           batchApprove,
           batchReject,
-          approveCr,
-          rejectCr,
-          showDetails,
+          showMetrics,
           closeModal,
           formatDate,
-          formatDateTime,
           getStatusText,
           handleLogin,
           handleLogout,

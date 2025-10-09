@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CR Management System Backend Server - With Detail Page Support
+CR Management System Backend Server - With New Detail API
 """
 
 import http.server
@@ -35,7 +35,11 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
         if self.path == '/api/change-requests':
             self.handle_get_crs()
         elif self.path.startswith('/api/change-requests/'):
-            self.handle_get_cr_detail()
+            # 检查是否是新的详情API格式
+            if re.match(r'^/api/change-requests/CHG\d+$', self.path):
+                self.handle_get_cr_metrics()
+            else:
+                self.send_error(404, "API endpoint not found")
         elif self.path == '/':
             # Serve the main HTML file
             self.path = '/index.html'
@@ -227,16 +231,7 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
                     'createdAt': '2023-06-15T00:00:00Z',
                     'status': 'pending',
                     'priority': 'High',
-                    'category': 'Infrastructure',
-                    'impact': 'Medium',
-                    'details': 'The current user login process has multiple steps that can be streamlined. This change will reduce login time by 30% and improve user satisfaction.',
-                    'implementationPlan': '1. Analyze current login flow\n2. Design optimized flow\n3. Develop changes\n4. Test thoroughly\n5. Deploy to production',
-                    'rollbackPlan': 'Revert to previous login implementation if issues arise during deployment.',
-                    'testingPlan': 'Unit tests, integration tests, and user acceptance testing will be performed.',
-                    'approvers': ['Boss', 'Security Team'],
-                    'estimatedEffort': '2 weeks',
-                    'actualEffort': '',
-                    'comments': []
+                    'category': 'Infrastructure'
                 },
                 {
                     'id': 'CHG100002',
@@ -246,19 +241,7 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
                     'createdAt': '2023-06-18T00:00:00Z',
                     'status': 'approved',
                     'priority': 'Medium',
-                    'category': 'Database',
-                    'impact': 'Low',
-                    'details': 'User table query performance is poor. Adding composite indexes will improve query performance by more than 30%.',
-                    'implementationPlan': '1. Identify slow queries\n2. Analyze query patterns\n3. Create optimal indexes\n4. Test performance\n5. Deploy during maintenance window',
-                    'rollbackPlan': 'Drop newly created indexes if performance degrades.',
-                    'testingPlan': 'Performance testing with production-like data.',
-                    'approvers': ['DBA Team'],
-                    'estimatedEffort': '3 days',
-                    'actualEffort': '2 days',
-                    'comments': [
-                        {'user': 'Boss', 'comment': 'Approved - good performance improvement', 'timestamp': '2023-06-19T10:00:00Z'},
-                        {'user': 'DBA Team', 'comment': 'Indexes look optimal', 'timestamp': '2023-06-19T14:30:00Z'}
-                    ]
+                    'category': 'Database'
                 },
                 {
                     'id': 'CHG100003',
@@ -268,18 +251,7 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
                     'createdAt': '2023-06-20T00:00:00Z',
                     'status': 'pending',
                     'priority': 'High',
-                    'category': 'Integration',
-                    'impact': 'High',
-                    'details': 'Current payment interface V1 will be deprecated next month. Upgrade to V2 is required to maintain payment functionality.',
-                    'implementationPlan': '1. Review V2 API documentation\n2. Update integration code\n3. Test with sandbox environment\n4. Deploy to staging\n5. Go-live with monitoring',
-                    'rollbackPlan': 'Switch back to V1 API if V2 integration fails.',
-                    'testingPlan': 'End-to-end testing with all payment methods.',
-                    'approvers': ['Boss', 'Finance Team'],
-                    'estimatedEffort': '3 weeks',
-                    'actualEffort': '',
-                    'comments': [
-                        {'user': 'Finance Team', 'comment': 'Please ensure all tax calculations are preserved', 'timestamp': '2023-06-21T09:15:00Z'}
-                    ]
+                    'category': 'Integration'
                 },
                 {
                     'id': 'CHG100004',
@@ -289,19 +261,7 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
                     'createdAt': '2023-06-22T00:00:00Z',
                     'status': 'rejected',
                     'priority': 'Medium',
-                    'category': 'Frontend',
-                    'impact': 'High',
-                    'details': 'Vue2 will stop maintenance by end of year. Migration to Vue3 provides better performance and developer experience.',
-                    'implementationPlan': '1. Audit current components\n2. Create migration plan\n3. Update dependencies\n4. Migrate components incrementally\n5. Comprehensive testing',
-                    'rollbackPlan': 'Revert Git commit if critical issues found.',
-                    'testingPlan': 'Functional testing across all browsers and devices.',
-                    'approvers': ['Boss', 'Frontend Team'],
-                    'estimatedEffort': '4 weeks',
-                    'actualEffort': '',
-                    'comments': [
-                        {'user': 'Boss', 'comment': 'Rejected - too much effort for current sprint', 'timestamp': '2023-06-23T16:45:00Z'},
-                        {'user': 'Frontend Team', 'comment': 'We can revisit this next quarter', 'timestamp': '2023-06-23T17:20:00Z'}
-                    ]
+                    'category': 'Frontend'
                 },
                 {
                     'id': 'CHG100005',
@@ -311,16 +271,7 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
                     'createdAt': '2023-06-25T00:00:00Z',
                     'status': 'pending',
                     'priority': 'Low',
-                    'category': 'Feature',
-                    'impact': 'Low',
-                    'details': 'Users have requested ability to export their data to Excel format for offline analysis.',
-                    'implementationPlan': '1. Design export functionality\n2. Implement Excel generation\n3. Add export button in UI\n4. Test with various data sets\n5. Deploy',
-                    'rollbackPlan': 'Remove export feature if performance issues occur.',
-                    'testingPlan': 'Test export with large datasets and verify Excel format.',
-                    'approvers': ['Boss'],
-                    'estimatedEffort': '1 week',
-                    'actualEffort': '',
-                    'comments': []
+                    'category': 'Feature'
                 }
             ]
             
@@ -331,132 +282,145 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
             print(f"Error getting CRs: {str(e)}")
             self.send_json_response(500, {'message': 'Internal server error'})
     
-    def handle_get_cr_detail(self):
-        """Handle GET change request detail"""
+    def handle_get_cr_metrics(self):
+        """Handle GET change request metrics - NEW API"""
         try:
             # Extract CR ID from path like /api/change-requests/CHG100001
             cr_id = self.path.split('/')[-1]
-            print(f"Fetching detail for CR: {cr_id}")
+            print(f"Fetching metrics for CR: {cr_id}")
             
-            # Mock CR data - in production, query database
-            all_crs = [
-                {
-                    'id': 'CHG100001',
-                    'title': 'User Login Function Optimization',
-                    'description': 'Improve user login process to enhance user experience',
-                    'requester': 'Kevin',
-                    'createdAt': '2023-06-15T00:00:00Z',
-                    'status': 'pending',
-                    'priority': 'High',
-                    'category': 'Infrastructure',
-                    'impact': 'Medium',
-                    'details': 'The current user login process has multiple steps that can be streamlined. This change will reduce login time by 30% and improve user satisfaction.',
-                    'implementationPlan': '1. Analyze current login flow\n2. Design optimized flow\n3. Develop changes\n4. Test thoroughly\n5. Deploy to production',
-                    'rollbackPlan': 'Revert to previous login implementation if issues arise during deployment.',
-                    'testingPlan': 'Unit tests, integration tests, and user acceptance testing will be performed.',
-                    'approvers': ['Boss', 'Security Team'],
-                    'estimatedEffort': '2 weeks',
-                    'actualEffort': '',
-                    'comments': []
-                },
-                {
-                    'id': 'CHG100002',
-                    'title': 'Database Index Optimization',
-                    'description': 'Optimize database indexes related to user queries',
-                    'requester': 'Kevin',
-                    'createdAt': '2023-06-18T00:00:00Z',
-                    'status': 'approved',
-                    'priority': 'Medium',
-                    'category': 'Database',
-                    'impact': 'Low',
-                    'details': 'User table query performance is poor. Adding composite indexes will improve query performance by more than 30%.',
-                    'implementationPlan': '1. Identify slow queries\n2. Analyze query patterns\n3. Create optimal indexes\n4. Test performance\n5. Deploy during maintenance window',
-                    'rollbackPlan': 'Drop newly created indexes if performance degrades.',
-                    'testingPlan': 'Performance testing with production-like data.',
-                    'approvers': ['DBA Team'],
-                    'estimatedEffort': '3 days',
-                    'actualEffort': '2 days',
-                    'comments': [
-                        {'user': 'Boss', 'comment': 'Approved - good performance improvement', 'timestamp': '2023-06-19T10:00:00Z'},
-                        {'user': 'DBA Team', 'comment': 'Indexes look optimal', 'timestamp': '2023-06-19T14:30:00Z'}
-                    ]
-                },
-                {
-                    'id': 'CHG100003',
-                    'title': 'Payment Interface Upgrade',
-                    'description': 'Upgrade payment interface from V1 to V2 version',
-                    'requester': 'Kevin',
-                    'createdAt': '2023-06-20T00:00:00Z',
-                    'status': 'pending',
-                    'priority': 'High',
-                    'category': 'Integration',
-                    'impact': 'High',
-                    'details': 'Current payment interface V1 will be deprecated next month. Upgrade to V2 is required to maintain payment functionality.',
-                    'implementationPlan': '1. Review V2 API documentation\n2. Update integration code\n3. Test with sandbox environment\n4. Deploy to staging\n5. Go-live with monitoring',
-                    'rollbackPlan': 'Switch back to V1 API if V2 integration fails.',
-                    'testingPlan': 'End-to-end testing with all payment methods.',
-                    'approvers': ['Boss', 'Finance Team'],
-                    'estimatedEffort': '3 weeks',
-                    'actualEffort': '',
-                    'comments': [
-                        {'user': 'Finance Team', 'comment': 'Please ensure all tax calculations are preserved', 'timestamp': '2023-06-21T09:15:00Z'}
-                    ]
-                },
-                {
-                    'id': 'CHG100004',
-                    'title': 'Frontend Framework Migration',
-                    'description': 'Migrate frontend framework from Vue2 to Vue3',
-                    'requester': 'Kevin',
-                    'createdAt': '2023-06-22T00:00:00Z',
-                    'status': 'rejected',
-                    'priority': 'Medium',
-                    'category': 'Frontend',
-                    'impact': 'High',
-                    'details': 'Vue2 will stop maintenance by end of year. Migration to Vue3 provides better performance and developer experience.',
-                    'implementationPlan': '1. Audit current components\n2. Create migration plan\n3. Update dependencies\n4. Migrate components incrementally\n5. Comprehensive testing',
-                    'rollbackPlan': 'Revert Git commit if critical issues found.',
-                    'testingPlan': 'Functional testing across all browsers and devices.',
-                    'approvers': ['Boss', 'Frontend Team'],
-                    'estimatedEffort': '4 weeks',
-                    'actualEffort': '',
-                    'comments': [
-                        {'user': 'Boss', 'comment': 'Rejected - too much effort for current sprint', 'timestamp': '2023-06-23T16:45:00Z'},
-                        {'user': 'Frontend Team', 'comment': 'We can revisit this next quarter', 'timestamp': '2023-06-23T17:20:00Z'}
-                    ]
-                },
-                {
-                    'id': 'CHG100005',
-                    'title': 'Add Data Export Function',
-                    'description': 'Add Excel data export function for users',
-                    'requester': 'Kevin',
-                    'createdAt': '2023-06-25T00:00:00Z',
-                    'status': 'pending',
-                    'priority': 'Low',
-                    'category': 'Feature',
-                    'impact': 'Low',
-                    'details': 'Users have requested ability to export their data to Excel format for offline analysis.',
-                    'implementationPlan': '1. Design export functionality\n2. Implement Excel generation\n3. Add export button in UI\n4. Test with various data sets\n5. Deploy',
-                    'rollbackPlan': 'Remove export feature if performance issues occur.',
-                    'testingPlan': 'Test export with large datasets and verify Excel format.',
-                    'approvers': ['Boss'],
-                    'estimatedEffort': '1 week',
-                    'actualEffort': '',
-                    'comments': []
-                }
-            ]
+            # Mock metrics data based on CR ID
+            metrics_data = {
+                'CHG100001': [
+                    {
+                        'Metric': 'CPU Utilization',
+                        'Checking_rules': 'Threshold < 80%',
+                        'Status': 'Pass',
+                        'Result': '75%',
+                        'Remedition': 'None required',
+                        'remediate_via': 'N/A'
+                    },
+                    {
+                        'Metric': 'Memory Usage',
+                        'Checking_rules': 'Threshold < 85%',
+                        'Status': 'Fail',
+                        'Result': '92%',
+                        'Remedition': 'Optimize memory allocation',
+                        'remediate_via': 'Ansible Playbook'
+                    },
+                    {
+                        'Metric': 'Disk I/O',
+                        'Checking_rules': 'Latency < 50ms',
+                        'Status': 'Pass',
+                        'Result': '35ms',
+                        'Remedition': 'None required',
+                        'remediate_via': 'N/A'
+                    },
+                    {
+                        'Metric': 'Network Latency',
+                        'Checking_rules': 'Ping < 100ms',
+                        'Status': 'Warning',
+                        'Result': '85ms',
+                        'Remedition': 'Monitor network traffic',
+                        'remediate_via': 'Manual intervention'
+                    }
+                ],
+                'CHG100002': [
+                    {
+                        'Metric': 'Query Performance',
+                        'Checking_rules': 'Response time < 2s',
+                        'Status': 'Pass',
+                        'Result': '1.2s',
+                        'Remedition': 'None required',
+                        'remediate_via': 'N/A'
+                    },
+                    {
+                        'Metric': 'Index Fragmentation',
+                        'Checking_rules': 'Fragmentation < 30%',
+                        'Status': 'Fail',
+                        'Result': '45%',
+                        'Remedition': 'Rebuild indexes',
+                        'remediate_via': 'SQL Script'
+                    }
+                ],
+                'CHG100003': [
+                    {
+                        'Metric': 'API Response Time',
+                        'Checking_rules': 'Response < 500ms',
+                        'Status': 'Pass',
+                        'Result': '320ms',
+                        'Remedition': 'None required',
+                        'remediate_via': 'N/A'
+                    },
+                    {
+                        'Metric': 'Error Rate',
+                        'Checking_rules': 'Error rate < 1%',
+                        'Status': 'Fail',
+                        'Result': '2.5%',
+                        'Remedition': 'Fix authentication issues',
+                        'remediate_via': 'Code deployment'
+                    },
+                    {
+                        'Metric': 'Throughput',
+                        'Checking_rules': 'Requests/sec > 100',
+                        'Status': 'Pass',
+                        'Result': '150 req/s',
+                        'Remedition': 'None required',
+                        'remediate_via': 'N/A'
+                    }
+                ],
+                'CHG100004': [
+                    {
+                        'Metric': 'Bundle Size',
+                        'Checking_rules': 'Size < 2MB',
+                        'Status': 'Fail',
+                        'Result': '2.8MB',
+                        'Remedition': 'Code splitting required',
+                        'remediate_via': 'Webpack optimization'
+                    },
+                    {
+                        'Metric': 'Lighthouse Score',
+                        'Checking_rules': 'Score > 90',
+                        'Status': 'Warning',
+                        'Result': '85',
+                        'Remedition': 'Improve performance metrics',
+                        'remediate_via': 'Frontend optimization'
+                    }
+                ],
+                'CHG100005': [
+                    {
+                        'Metric': 'Export Performance',
+                        'Checking_rules': 'Export < 30s for 10k rows',
+                        'Status': 'Pass',
+                        'Result': '25s',
+                        'Remedition': 'None required',
+                        'remediate_via': 'N/A'
+                    },
+                    {
+                        'Metric': 'Memory Usage During Export',
+                        'Checking_rules': 'Memory < 512MB',
+                        'Status': 'Pass',
+                        'Result': '480MB',
+                        'Remedition': 'None required',
+                        'remediate_via': 'N/A'
+                    }
+                ]
+            }
             
-            # Find the specific CR
-            cr_detail = next((cr for cr in all_crs if cr['id'] == cr_id), None)
+            # Get metrics for the specific CR or return empty if not found
+            metrics = metrics_data.get(cr_id, [])
             
-            if cr_detail:
-                self.send_json_response(200, cr_detail)
-                print(f"CR detail sent for: {cr_id}")
-            else:
-                self.send_json_response(404, {'message': 'Change request not found'})
-                print(f"CR not found: {cr_id}")
+            response = {
+                'cr_id': cr_id,
+                'metrics': metrics,
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            self.send_json_response(200, response)
+            print(f"Metrics sent for CR: {cr_id}, {len(metrics)} metrics")
             
         except Exception as e:
-            print(f"Error getting CR detail: {str(e)}")
+            print(f"Error getting CR metrics: {str(e)}")
             self.send_json_response(500, {'message': 'Internal server error'})
     
     def handle_batch_approve(self, data):
@@ -561,12 +525,12 @@ def main():
     
     with socketserver.TCPServer(("", PORT), CRManagementHandler) as httpd:
         print("=" * 60)
-        print(f"CR Management System Server - With Detail Page Support")
+        print(f"CR Management System Server - With Metrics API")
         print(f"Running at http://localhost:{PORT}")
         print("=" * 60)
-        print("New endpoints:")
-        print("  GET  /api/change-requests/CHG123456 - Get CR details")
+        print("Available endpoints:")
         print("  GET  /api/change-requests - Get all CRs")
+        print("  GET  /api/change-requests/CHG123456 - Get CR metrics (NEW)")
         print("  POST /api/ldap/auth - LDAP authentication")
         print("  POST /api/change-requests/batch-approve - Batch approve CRs")
         print("  POST /api/change-requests/batch-reject - Batch reject CRs")
