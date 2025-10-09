@@ -242,6 +242,18 @@
       font-weight: 600;
     }
     
+    .view-metrics-btn {
+      color: #3498db;
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+    
+    .view-metrics-btn:hover {
+      background-color: #e8f4fd;
+    }
+    
     /* 详情页样式 */
     .modal-overlay {
       position: fixed;
@@ -570,7 +582,7 @@
           <div class="cr-meta">
             <div>
               <i class="fas fa-user"></i> {{ cr.requester }}
-              <span class="priority-{{ cr.priority.toLowerCase() }}" style="margin-left: 10px;">
+              <span :class="`priority-${cr.priority.toLowerCase()}`" style="margin-left: 10px;">
                 <i class="fas fa-flag"></i> {{ cr.priority }}
               </span>
             </div>
@@ -584,7 +596,7 @@
                 {{ getStatusText(cr.status) }}
               </span>
             </div>
-            <div @click.stop="showMetrics(cr)">
+            <div class="view-metrics-btn" @click.stop="showMetrics(cr)">
               <i class="fas fa-chart-bar"></i> View Metrics
             </div>
           </div>
@@ -673,7 +685,7 @@
               <i class="fas fa-spinner fa-spin"></i> Loading metrics...
             </div>
           </div>
-          <div class="modal-footer" style="padding: 15px 20px; border-top: 1px solid #e0e6ed; display: flex; justify-content: flex-end; gap: 10px;">
+          <div style="padding: 15px 20px; border-top: 1px solid #e0e6ed; display: flex; justify-content: flex-end;">
             <button class="btn btn-secondary" @click="closeModal">
               Close
             </button>
@@ -721,6 +733,7 @@
         // LDAP 认证服务
         const ldapService = {
           async authenticate(credentials) {
+            console.log('Sending LDAP auth request...');
             const response = await fetch('/api/ldap/auth', {
               method: 'POST',
               headers: { 
@@ -744,6 +757,7 @@
             }
             
             const result = await response.json();
+            console.log('LDAP auth result:', result);
             
             if (result.authenticated && result.user) {
               return {
@@ -759,6 +773,7 @@
         // API 服务函数
         const apiService = {
           async fetchCRs(token) {
+            console.log('Fetching CRs...');
             const response = await fetch('/api/change-requests', {
               headers: { 
                 'Authorization': `Bearer ${token}`,
@@ -774,6 +789,7 @@
           },
 
           async fetchCRMetrics(crId, token) {
+            console.log(`Fetching metrics for CR: ${crId}`);
             const response = await fetch(`/api/change-requests/${crId}`, {
               headers: { 
                 'Authorization': `Bearer ${token}`,
@@ -842,6 +858,8 @@
             isLoading.value = true;
             error.value = null;
             
+            console.log('Starting login process...');
+            
             // LDAP 认证
             const result = await ldapService.authenticate(loginForm.value);
             
@@ -852,10 +870,13 @@
             currentUser.value = result.user;
             isLoggedIn.value = true;
             
+            console.log('Login successful, loading CRs...');
+            
             // 加载 CR 数据
             await loadCRs();
             
           } catch (err) {
+            console.error('Login error:', err);
             error.value = err.message;
           } finally {
             isLoading.value = false;
@@ -892,8 +913,10 @@
             }
             
             crList.value = await apiService.fetchCRs(token);
+            console.log('CRs loaded:', crList.value.length);
             
           } catch (err) {
+            console.error('Load CRs error:', err);
             error.value = err.message;
           } finally {
             isLoading.value = false;
@@ -902,6 +925,7 @@
 
         // 显示指标
         const showMetrics = async (cr) => {
+          console.log('Show metrics called for CR:', cr.id);
           try {
             isLoadingDetail.value = true;
             showModal.value = true;
@@ -910,10 +934,17 @@
             
             const token = localStorage.getItem('authToken');
             
+            if (!token) {
+              throw new Error('No authentication token found');
+            }
+            
+            console.log('Fetching metrics data...');
             // 获取指标数据
             metricsData.value = await apiService.fetchCRMetrics(cr.id, token);
+            console.log('Metrics data loaded:', metricsData.value);
             
           } catch (err) {
+            console.error('Show metrics error:', err);
             error.value = `Failed to load metrics: ${err.message}`;
           } finally {
             isLoadingDetail.value = false;
@@ -922,6 +953,7 @@
 
         // 关闭详情弹窗
         const closeModal = () => {
+          console.log('Closing modal');
           showModal.value = false;
           selectedCr.value = null;
           metricsData.value = null;
@@ -992,8 +1024,10 @@
             try {
               currentUser.value = JSON.parse(userInfo);
               isLoggedIn.value = true;
+              console.log('Restored session for user:', currentUser.value.name);
               loadCRs();
             } catch (err) {
+              console.error('Failed to restore session:', err);
               handleLogout();
             }
           }
@@ -1045,6 +1079,7 @@
 
         // 初始化检查认证状态
         onMounted(() => {
+          console.log('App mounted');
           checkAuthStatus();
         });
         
