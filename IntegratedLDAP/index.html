@@ -667,10 +667,22 @@
                     </td>
                     <td>{{ result.result }}</td>
                     <td>{{ result.suggestion }}</td>
-                    <td>{{ result.remediateLink }}</td>
+                    <td>
+                      <span v-if="result.remediateLink && result.remediateLink !== 'N/A'">
+                        <a :href="result.remediateLink" target="_blank" style="color: #3498db; text-decoration: none;">
+                          {{ result.remediateLink }}
+                        </a>
+                      </span>
+                      <span v-else>
+                        {{ result.remediateLink || 'N/A' }}
+                      </span>
+                    </td>
                   </tr>
                 </tbody>
               </table>
+              <div style="margin-top: 15px; font-size: 14px; color: #7f8c8d;">
+                Total: {{ metricsData.results.length }} metrics
+              </div>
             </div>
 
             <!-- 无数据状态 -->
@@ -945,12 +957,12 @@
             const response = await apiService.fetchCRMetrics(cr.id, token);
             console.log('Raw metrics response:', response);
             
-            // 确保我们正确处理响应结构
+            // 确保数据格式正确
             if (response && response.status === 200 && Array.isArray(response.results)) {
               metricsData.value = response;
-              console.log('Processed metrics data:', metricsData.value);
+              console.log('Metrics data processed successfully:', metricsData.value.results.length, 'results');
             } else {
-              throw new Error('Invalid metrics response format');
+              throw new Error('Invalid metrics data format');
             }
             
           } catch (err) {
@@ -971,7 +983,6 @@
 
         // 根据状态码获取状态类名
         const getStatusClass = (statusCode) => {
-          console.log('Getting status class for:', statusCode);
           const statusMap = {
             '1': 'passed',
             '0': 'failed', 
@@ -982,7 +993,6 @@
 
         // 根据状态码获取状态文本
         const getStatusTextFromCode = (statusCode) => {
-          console.log('Getting status text for:', statusCode);
           const statusMap = {
             '1': 'Passed',
             '0': 'Failed',
