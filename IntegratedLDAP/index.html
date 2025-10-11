@@ -644,9 +644,6 @@
 
             <!-- 指标表格 -->
             <div v-if="metricsData && metricsData.results && metricsData.results.length > 0">
-              <strong>Debug Info:</strong> 
-              Status: {{ metricsData.status }}, 
-              Results: {{ metricsData.results ? metricsData.results.length : 0 }}
               <h3 style="margin-bottom: 15px; color: #2c3e50;">Metrics Overview</h3>
               <table class="metrics-table">
                 <thead>
@@ -661,16 +658,16 @@
                 </thead>
                 <tbody>
                   <tr v-for="(result, index) in metricsData.results" :key="index">
-                    <td><strong>{{ result.group || 'N/A' }}</strong></td>
-                    <td>{{ result.title || 'N/A' }}</td>
+                    <td><strong>{{ result.group }}</strong></td>
+                    <td>{{ result.title }}</td>
                     <td>
                       <span class="status" :class="getStatusClass(result.status)">
                         {{ getStatusTextFromCode(result.status) }}
                       </span>
                     </td>
-                    <td>{{ result.result || 'N/A' }}</td>
-                    <td>{{ result.suggestion || 'N/A' }}</td>
-                    <td>{{ result.remediateLink || 'N/A' }}</td>
+                    <td>{{ result.result }}</td>
+                    <td>{{ result.suggestion }}</td>
+                    <td>{{ result.remediateLink }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -930,18 +927,12 @@
 
         // 显示指标
         const showMetrics = async (cr) => {
-          console.log('=== SHOW METRICS DEBUG START ===');
           console.log('Show metrics called for CR:', cr.id);
-          
           try {
             isLoadingDetail.value = true;
             showModal.value = true;
             selectedCr.value = cr;
             metricsData.value = null;
-            
-            // 强制Vue更新UI
-            await nextTick();
-            console.log('Modal opened, loading state:', isLoadingDetail.value);
             
             const token = localStorage.getItem('authToken');
             
@@ -949,91 +940,24 @@
               throw new Error('No authentication token found');
             }
             
-            console.log('Making API request to:', `/api/change-requests/${cr.id}`);
-            
+            console.log('Fetching metrics data...');
             // 获取指标数据
-            const response = await fetch(`/api/change-requests/${cr.id}`, {
-              headers: { 
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              }
-            });
+            const response = await apiService.fetchCRMetrics(cr.id, token);
+            console.log('Raw metrics response:', response);
             
-            console.log('Response status:', response.status);
-            console.log('Response headers:', Object.fromEntries(response.headers.entries()));
-            
-            if (!response.ok) {
-              throw new Error(`Failed to fetch CR metrics: ${response.status}`);
+            // 确保我们正确处理响应结构
+            if (response && response.status === 200 && Array.isArray(response.results)) {
+              metricsData.value = response;
+              console.log('Processed metrics data:', metricsData.value);
+            } else {
+              throw new Error('Invalid metrics response format');
             }
-            
-            // 获取原始响应文本
-            const rawText = await response.text();
-            console.log('Raw response text length:', rawText.length);
-            console.log('Raw response text (first 500 chars):', rawText.substring(0, 500));
-            
-            // 检查是否有转义字符
-            if (rawText.includes('\\"')) {
-              console.log('Found escaped quotes in response');
-            }
-            
-            // 尝试解析JSON
-            let parsedData;
-            try {
-              parsedData = JSON.parse(rawText);
-              console.log('✅ JSON parsed successfully');
-            } catch (parseError) {
-              console.error('❌ JSON parse error:', parseError);
-              console.log('Trying to fix JSON...');
-              
-              // 尝试清理JSON字符串
-              const cleanedText = rawText
-                .replace(/\\"/g, '"')
-                .replace(/\\\\/g, '\\');
-              
-              try {
-                parsedData = JSON.parse(cleanedText);
-                console.log('✅ JSON fixed and parsed successfully');
-              } catch (secondParseError) {
-                console.error('❌ Second JSON parse error:', secondParseError);
-                throw new Error('Invalid JSON response from server');
-              }
-            }
-            
-            console.log('Parsed data structure:', {
-              status: parsedData.status,
-              hasResults: !!parsedData.results,
-              resultsCount: parsedData.results ? parsedData.results.length : 0,
-              resultsType: typeof parsedData.results
-            });
-            
-            if (parsedData.results && Array.isArray(parsedData.results)) {
-              console.log('Results array details:');
-              parsedData.results.forEach((result, index) => {
-                console.log(`Result ${index}:`, {
-                  group: result.group,
-                  title: result.title,
-                  status: result.status,
-                  result: result.result,
-                  suggestion: result.suggestion,
-                  remediateLink: result.remediateLink
-                });
-              });
-            }
-            
-            // 设置响应式数据
-            metricsData.value = parsedData;
-            
-            // 等待Vue更新
-            await nextTick();
-            console.log('Vue updated, current metricsData:', metricsData.value);
             
           } catch (err) {
-            console.error('❌ Show metrics error:', err);
+            console.error('Show metrics error:', err);
             error.value = `Failed to load metrics: ${err.message}`;
           } finally {
             isLoadingDetail.value = false;
-            console.log('Loading state set to:', isLoadingDetail.value);
-            console.log('=== SHOW METRICS DEBUG END ===');
           }
         };
 
@@ -1047,6 +971,7 @@
 
         // 根据状态码获取状态类名
         const getStatusClass = (statusCode) => {
+          console.log('Getting status class for:', statusCode);
           const statusMap = {
             '1': 'passed',
             '0': 'failed', 
@@ -1057,6 +982,7 @@
 
         // 根据状态码获取状态文本
         const getStatusTextFromCode = (statusCode) => {
+          console.log('Getting status text for:', statusCode);
           const statusMap = {
             '1': 'Passed',
             '0': 'Failed',
