@@ -197,12 +197,12 @@
       font-weight: 500;
     }
     
-    .status-pass {
+    .status-passed {
       background-color: #d1ecf1;
       color: #0c5460;
     }
     
-    .status-fail {
+    .status-failed {
       background-color: #f8d7da;
       color: #721c24;
     }
@@ -643,7 +643,7 @@
             </div>
 
             <!-- 指标表格 -->
-            <div v-if="metricsData && metricsData.metrics && metricsData.metrics.length > 0">
+            <div v-if="metricsData && metricsData.results && metricsData.results.length > 0">
               <h3 style="margin-bottom: 15px; color: #2c3e50;">Metrics Overview</h3>
               <table class="metrics-table">
                 <thead>
@@ -657,17 +657,17 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="(metric, index) in metricsData.metrics" :key="index">
-                    <td><strong>{{ metric.Metric }}</strong></td>
-                    <td>{{ metric.Checking_rules }}</td>
+                  <tr v-for="(result, index) in metricsData.results" :key="index">
+                    <td><strong>{{ result.group }}</strong></td>
+                    <td>{{ result.title }}</td>
                     <td>
-                      <span class="status" :class="`status-${metric.Status.toLowerCase()}`">
-                        {{ metric.Status }}
+                      <span class="status" :class="getStatusClass(result.status)">
+                        {{ getStatusTextFromCode(result.status) }}
                       </span>
                     </td>
-                    <td>{{ metric.Result }}</td>
-                    <td>{{ metric.Remedition }}</td>
-                    <td>{{ metric.remediate_via }}</td>
+                    <td>{{ result.result }}</td>
+                    <td>{{ result.suggestion }}</td>
+                    <td>{{ result.remediateLink }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -801,7 +801,9 @@
               throw new Error(`Failed to fetch CR metrics: ${response.status}`);
             }
             
-            return response.json();
+            const data = await response.json();
+            console.log('Metrics API response:', data);
+            return data;
           },
           
           async batchApprove(ids, token) {
@@ -959,6 +961,26 @@
           metricsData.value = null;
         };
 
+        // 根据状态码获取状态类名
+        const getStatusClass = (statusCode) => {
+          const statusMap = {
+            '1': 'passed',
+            '0': 'failed', 
+            '2': 'warning'
+          };
+          return statusMap[statusCode] || 'pending';
+        };
+
+        // 根据状态码获取状态文本
+        const getStatusTextFromCode = (statusCode) => {
+          const statusMap = {
+            '1': 'Passed',
+            '0': 'Failed',
+            '2': 'Warning'
+          };
+          return statusMap[statusCode] || 'Unknown';
+        };
+
         // 批量批准
         const batchApprove = async () => {
           try {
@@ -1069,10 +1091,7 @@
           const statusMap = {
             'pending': 'Pending',
             'approved': 'Approved',
-            'rejected': 'Rejected',
-            'pass': 'Pass',
-            'fail': 'Fail',
-            'warning': 'Warning'
+            'rejected': 'Rejected'
           };
           return statusMap[status] || status;
         };
@@ -1108,6 +1127,8 @@
           closeModal,
           formatDate,
           getStatusText,
+          getStatusClass,
+          getStatusTextFromCode,
           handleLogin,
           handleLogout,
           loadCRs

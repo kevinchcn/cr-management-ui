@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-CR Management System Backend Server - With New Detail API
+CR Management System Backend Server - Updated Metrics API
 """
 
 import http.server
@@ -283,141 +283,143 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
             self.send_json_response(500, {'message': 'Internal server error'})
     
     def handle_get_cr_metrics(self):
-        """Handle GET change request metrics - NEW API"""
+        """Handle GET change request metrics - UPDATED API STRUCTURE"""
         try:
             # Extract CR ID from path like /api/change-requests/CHG100001
             cr_id = self.path.split('/')[-1]
             print(f"Fetching metrics for CR: {cr_id}")
             
-            # Mock metrics data based on CR ID
+            # Mock metrics data based on CR ID with new structure
             metrics_data = {
-                'CHG100001': [
-                    {
-                        'Metric': 'CPU Utilization',
-                        'Checking_rules': 'Threshold < 80%',
-                        'Status': 'Pass',
-                        'Result': '75%',
-                        'Remedition': 'None required',
-                        'remediate_via': 'N/A'
-                    },
-                    {
-                        'Metric': 'Memory Usage',
-                        'Checking_rules': 'Threshold < 85%',
-                        'Status': 'Fail',
-                        'Result': '92%',
-                        'Remedition': 'Optimize memory allocation',
-                        'remediate_via': 'Ansible Playbook'
-                    },
-                    {
-                        'Metric': 'Disk I/O',
-                        'Checking_rules': 'Latency < 50ms',
-                        'Status': 'Pass',
-                        'Result': '35ms',
-                        'Remedition': 'None required',
-                        'remediate_via': 'N/A'
-                    },
-                    {
-                        'Metric': 'Network Latency',
-                        'Checking_rules': 'Ping < 100ms',
-                        'Status': 'Warning',
-                        'Result': '85ms',
-                        'Remedition': 'Monitor network traffic',
-                        'remediate_via': 'Manual intervention'
-                    }
-                ],
-                'CHG100002': [
-                    {
-                        'Metric': 'Query Performance',
-                        'Checking_rules': 'Response time < 2s',
-                        'Status': 'Pass',
-                        'Result': '1.2s',
-                        'Remedition': 'None required',
-                        'remediate_via': 'N/A'
-                    },
-                    {
-                        'Metric': 'Index Fragmentation',
-                        'Checking_rules': 'Fragmentation < 30%',
-                        'Status': 'Fail',
-                        'Result': '45%',
-                        'Remedition': 'Rebuild indexes',
-                        'remediate_via': 'SQL Script'
-                    }
-                ],
-                'CHG100003': [
-                    {
-                        'Metric': 'API Response Time',
-                        'Checking_rules': 'Response < 500ms',
-                        'Status': 'Pass',
-                        'Result': '320ms',
-                        'Remedition': 'None required',
-                        'remediate_via': 'N/A'
-                    },
-                    {
-                        'Metric': 'Error Rate',
-                        'Checking_rules': 'Error rate < 1%',
-                        'Status': 'Fail',
-                        'Result': '2.5%',
-                        'Remedition': 'Fix authentication issues',
-                        'remediate_via': 'Code deployment'
-                    },
-                    {
-                        'Metric': 'Throughput',
-                        'Checking_rules': 'Requests/sec > 100',
-                        'Status': 'Pass',
-                        'Result': '150 req/s',
-                        'Remedition': 'None required',
-                        'remediate_via': 'N/A'
-                    }
-                ],
-                'CHG100004': [
-                    {
-                        'Metric': 'Bundle Size',
-                        'Checking_rules': 'Size < 2MB',
-                        'Status': 'Fail',
-                        'Result': '2.8MB',
-                        'Remedition': 'Code splitting required',
-                        'remediate_via': 'Webpack optimization'
-                    },
-                    {
-                        'Metric': 'Lighthouse Score',
-                        'Checking_rules': 'Score > 90',
-                        'Status': 'Warning',
-                        'Result': '85',
-                        'Remedition': 'Improve performance metrics',
-                        'remediate_via': 'Frontend optimization'
-                    }
-                ],
-                'CHG100005': [
-                    {
-                        'Metric': 'Export Performance',
-                        'Checking_rules': 'Export < 30s for 10k rows',
-                        'Status': 'Pass',
-                        'Result': '25s',
-                        'Remedition': 'None required',
-                        'remediate_via': 'N/A'
-                    },
-                    {
-                        'Metric': 'Memory Usage During Export',
-                        'Checking_rules': 'Memory < 512MB',
-                        'Status': 'Pass',
-                        'Result': '480MB',
-                        'Remedition': 'None required',
-                        'remediate_via': 'N/A'
-                    }
-                ]
+                'CHG100001': {
+                    'status': 200,
+                    'results': [
+                        {
+                            'group': 'Performance',
+                            'status': '1',
+                            'title': 'CPU Utilization < 80%',
+                            'description': 'Monitor CPU usage during peak load',
+                            'result': 'Passed',
+                            'suggestion': 'No action required',
+                            'remediateLink': 'N/A'
+                        },
+                        {
+                            'group': 'Performance',
+                            'status': '0',
+                            'title': 'Memory Usage < 85%',
+                            'description': 'Check memory consumption patterns',
+                            'result': 'Failed',
+                            'suggestion': 'Optimize memory allocation and garbage collection',
+                            'remediateLink': 'ansible/playbooks/memory-optimization.yml'
+                        },
+                        {
+                            'group': 'Security',
+                            'status': '1',
+                            'title': 'SSL Certificate Valid',
+                            'description': 'Verify SSL certificate expiration',
+                            'result': 'Passed',
+                            'suggestion': 'Continue monitoring certificate expiration',
+                            'remediateLink': 'N/A'
+                        },
+                        {
+                            'group': 'Network',
+                            'status': '2',
+                            'title': 'Network Latency < 100ms',
+                            'description': 'Measure network response times',
+                            'result': 'Warning',
+                            'suggestion': 'Investigate network congestion',
+                            'remediateLink': 'manual/network-optimization-guide.md'
+                        }
+                    ]
+                },
+                'CHG100002': {
+                    'status': 200,
+                    'results': [
+                        {
+                            'group': 'Database',
+                            'status': '1',
+                            'title': 'Query Performance < 2s',
+                            'description': 'Monitor slow queries',
+                            'result': 'Passed',
+                            'suggestion': 'Query performance meets requirements',
+                            'remediateLink': 'N/A'
+                        },
+                        {
+                            'group': 'Database',
+                            'status': '0',
+                            'title': 'Index Fragmentation < 30%',
+                            'description': 'Check index maintenance status',
+                            'result': 'Failed',
+                            'suggestion': 'Rebuild fragmented indexes during maintenance window',
+                            'remediateLink': 'sql/scripts/rebuild-indexes.sql'
+                        }
+                    ]
+                },
+                'CHG100003': {
+                    'status': 200,
+                    'results': [
+                        {
+                            'group': 'API',
+                            'status': '1',
+                            'title': 'Response Time < 500ms',
+                            'description': 'Monitor API endpoint performance',
+                            'result': 'Passed',
+                            'suggestion': 'API performance is optimal',
+                            'remediateLink': 'N/A'
+                        },
+                        {
+                            'group': 'API',
+                            'status': '0',
+                            'title': 'Error Rate < 1%',
+                            'description': 'Track API error rates',
+                            'result': 'Failed',
+                            'suggestion': 'Fix authentication endpoint issues',
+                            'remediateLink': 'deployment/api-fix-v2.1.zip'
+                        }
+                    ]
+                },
+                'CHG100004': {
+                    'status': 200,
+                    'results': [
+                        {
+                            'group': 'Frontend',
+                            'status': '0',
+                            'title': 'Bundle Size < 2MB',
+                            'description': 'Check JavaScript bundle size',
+                            'result': 'Failed',
+                            'suggestion': 'Implement code splitting and tree shaking',
+                            'remediateLink': 'webpack/config/optimization.config.js'
+                        }
+                    ]
+                },
+                'CHG100005': {
+                    'status': 200,
+                    'results': [
+                        {
+                            'group': 'Performance',
+                            'status': '1',
+                            'title': 'Export Time < 30s',
+                            'description': 'Measure data export performance',
+                            'result': 'Passed',
+                            'suggestion': 'Export performance meets requirements',
+                            'remediateLink': 'N/A'
+                        }
+                    ]
+                }
             }
             
             # Get metrics for the specific CR or return empty if not found
-            metrics = metrics_data.get(cr_id, [])
-            
-            response = {
-                'cr_id': cr_id,
-                'metrics': metrics,
-                'timestamp': datetime.now().isoformat()
-            }
+            if cr_id in metrics_data:
+                response = metrics_data[cr_id]
+                print(f"Metrics sent for CR: {cr_id}, {len(response['results'])} results")
+            else:
+                response = {
+                    'status': 200,
+                    'results': []
+                }
+                print(f"No metrics found for CR: {cr_id}")
             
             self.send_json_response(200, response)
-            print(f"Metrics sent for CR: {cr_id}, {len(metrics)} metrics")
             
         except Exception as e:
             print(f"Error getting CR metrics: {str(e)}")
@@ -501,7 +503,7 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
             json_data = json.dumps(data, ensure_ascii=False).encode('utf-8')
             self.wfile.write(json_data)
             
-            print(f"Response sent: {status_code} - {data.get('authenticated', 'N/A')}")
+            print(f"Response sent: {status_code}")
             
         except Exception as e:
             print(f"Error sending response: {str(e)}")
@@ -525,12 +527,12 @@ def main():
     
     with socketserver.TCPServer(("", PORT), CRManagementHandler) as httpd:
         print("=" * 60)
-        print(f"CR Management System Server - With Metrics API")
+        print(f"CR Management System Server - Updated Metrics API")
         print(f"Running at http://localhost:{PORT}")
         print("=" * 60)
         print("Available endpoints:")
         print("  GET  /api/change-requests - Get all CRs")
-        print("  GET  /api/change-requests/CHG123456 - Get CR metrics (NEW)")
+        print("  GET  /api/change-requests/CHG123456 - Get CR metrics (UPDATED)")
         print("  POST /api/ldap/auth - LDAP authentication")
         print("  POST /api/change-requests/batch-approve - Batch approve CRs")
         print("  POST /api/change-requests/batch-reject - Batch reject CRs")
