@@ -493,14 +493,15 @@ class CRManagementHandler(http.server.SimpleHTTPRequestHandler):
         return 'requester'
     
     def send_json_response(self, status_code, data):
-        """Send JSON response with CORS headers"""
+        """Send JSON response with CORS headers - FIXED VERSION"""
         try:
             self.send_response(status_code)
             self.send_header('Content-Type', 'application/json; charset=utf-8')
             self.send_cors_headers()
             self.end_headers()
             
-            json_data = json.dumps(data, ensure_ascii=False).encode('utf-8')
+            # 确保使用 ensure_ascii=False 来保留非ASCII字符
+            json_data = json.dumps(data, ensure_ascii=False, indent=2).encode('utf-8')
             self.wfile.write(json_data)
             
             print(f"Response sent: {status_code}")
